@@ -1,11 +1,10 @@
 /* sampleCodeModule.c */
 
 #include <videoLib.h>
-#include <soundLib.h>
 #include <usrio.h>
 #include <timeLib.h>
 #include <shell.h>
-#include <pongisLib.h>
+
 
 char * v = (char*)0xB8000 + 79 * 2;
 
