@@ -4,15 +4,25 @@
 #include <stdint.h>
 #include <stddef.h>
 
+#define MAX_PROCESSES 16
+
+typedef enum { READY = 0, RUNNING, BLOCKED, KILLED } process_state;
+
 typedef struct {
     uint64_t pid;       // Pid del proceso
     uint64_t rsp;       // Puntero al stack para el scheduler
-    char process_name[32];      // Nombre del proceso
-    int state;      // Estado del proceso(blocked, runningm, ready)
+    char * process_name;      // Nombre del proceso
+    int state;      // Estado del proceso(blocked, running, ready)
 } pcb_t;
 
 extern pcb_t* current_process; // Puntero al proceso actual corriendo
+extern pcb_t* process_table[MAX_PROCESSES]; // Por lo pronto tenemos el array estatico con max 16 procesos y ordenados por pid (pid = 1 -> process_table[0], ..)
 
 uint64_t sys_get_pid();
+void scheduler();
+void create_process(void * entry_point, char * process_name);  // el entry_point es la direccion de memoria donde comienza el proceso
+void exit_process();    // Termina el proceso actual 
+void block_process(uint64_t pid);
+void unblock_process(uint64_t pid);
 
 #endif  

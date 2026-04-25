@@ -21,3 +21,7 @@ uint64_t / 8 -> Byte(fila)
 uint8_t % 8 -> Bit(columna)
 
 * **Eficiencia:** Es ridículamente eficiente en memoria. Para rastrear 1 GB de RAM (marcos de 4KB), el bitmap solo ocupa 32 KB.
+
+## 3. Procesos
+Se agregaron los archivos process.c y process.h en el .h se encuentra la estructura principal de un proceso, se tiene por lo pronto un array estatico con todos los procesos en cualquier estado. Se busca implementar tambien el scheduler en el .c .
+Tambien se agrego el enum de estados y se agrega el estado de muerto para saber cuando retirarlo del array de procesos.
