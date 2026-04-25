@@ -133,12 +133,12 @@ uint64_t sys_read(uint8_t fd, char *buffer, uint64_t count)
     return 0;
 }
 
-// uint64_t get_pid()
-// {
-//     if()
-// }
+uint64_t get_pid()
+{
+    return sys_get_pid();
+}
 
-
+ 
 void syscallDispatcher(Registers_t *regs) 
 {
     // El número de la syscall generalmente se pasa en RAX

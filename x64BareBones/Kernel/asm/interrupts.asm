@@ -210,10 +210,6 @@ get_registers:
     mov rax, rsp
 	popState
     ret
-
-; Implementacion del getpid
-get_pid:
-	mov rax, 22
 	
 
 SECTION .bss

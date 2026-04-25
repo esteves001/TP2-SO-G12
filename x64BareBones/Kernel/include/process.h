@@ -1,5 +1,5 @@
-#ifndef PROCESS _H_
-#define PROCESS _H_
+#ifndef PROCESS_H_
+#define PROCESS_H_
 
 #include <stdint.h>
 #include <stddef.h>
@@ -11,5 +11,8 @@ typedef struct {
     int state;      // Estado del proceso(blocked, runningm, ready)
 } pcb_t;
 
+extern pcb_t* current_process; // Puntero al proceso actual corriendo
 
-#endif 
+uint64_t sys_get_pid();
+
+#endif  
