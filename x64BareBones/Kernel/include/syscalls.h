@@ -41,5 +41,6 @@ typedef struct {
 void syscallDispatcher(Registers_t *regs);
 void loadSnapshot(Registers_t *regs);
 void resetCursorCoord(void);
+int get_pid(void);
 
 #endif /* SYSCALLS_H_ */

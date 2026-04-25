@@ -193,7 +193,7 @@ _int80Handler:
 
     ; El valor de retorno de la syscall (si lo hay) deberia estar en rax
     ; despues de que syscallDispatcher retorne. popState lo restaura
-
+	
     popState
     iretq
 
@@ -211,6 +211,10 @@ get_registers:
 	popState
     ret
 
+; Implementacion del getpid
+get_pid:
+	mov rax, 22
+	
 
 SECTION .bss
 	user_snapshot resq 17

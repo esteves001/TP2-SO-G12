@@ -1,4 +1,5 @@
 #include <syscalls.h>
+#include "process.h"
 
 #define STDIN  0
 #define STDOUT 1
@@ -132,6 +133,11 @@ uint64_t sys_read(uint8_t fd, char *buffer, uint64_t count)
     return 0;
 }
 
+// uint64_t get_pid()
+// {
+//     if()
+// }
+
 
 void syscallDispatcher(Registers_t *regs) 
 {
@@ -245,6 +251,9 @@ void syscallDispatcher(Registers_t *regs)
 
         case 0x20:
             regs->rax = kbd_get_char();
+            break;
+        case 0x22:
+            regs->rax = get_pid();
             break;
 
         // TODO: este no quedo organizado como los demas
