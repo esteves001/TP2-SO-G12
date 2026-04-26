@@ -21,7 +21,7 @@ static uint64_t first_free_page = 0;
 // 3) Ponemos como ocupados todos los marcos de paginas
 // 4) Ponemos como libres los marcos de pagina que realmente estan libres
 // Asi dejamos la memoria del Kernel, etc. protegida e inaccesible
-void initializeMemoryManager(void) {
+void initialize_memory_manager(void) {
     // 1. Leer cantidad de RAM desde la Information Table de Pure64
     uint32_t ram_mb = *((uint32_t*)PURE64_RAM_INFO);
     uint64_t total_ram_bytes = (uint64_t)ram_mb * 1024 * 1024; // Megabytes a Bytes 1024 * 1024
@@ -60,7 +60,7 @@ void initializeMemoryManager(void) {
 // 1) Encontramos una posicion libre (0) en el bitmap
 // 2) Pasamos dicha posicion a (1)
 // 3) Devolvemos el puntero correspondiente al espacio en memoria que acabamos de reservar 
-void* allocatePage(void) {
+void* allocate_page(void) {
     // Iteramos por los marcos de pagina
     for (uint64_t i = first_free_page; i < total_pages; i++) {
         uint64_t byte_index = i / 8;
@@ -78,7 +78,7 @@ void* allocatePage(void) {
 // Idea
 // 1) Encontrar el marco de pagina correspondiente al puntero
 // 2) Marcarlo como 0 (libre)
-void freePage(void* address) {
+void free_page(void* address) {
     uint64_t page_index = (uint64_t)address / PAGE_SIZE; // Obtenemos el marco de pagina 
     bitmap[page_index / 8] &= ~(1 << (page_index % 8));   // Lo volvemos a poner en 0
     free_pages++;

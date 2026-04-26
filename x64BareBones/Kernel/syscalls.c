@@ -1,4 +1,5 @@
 #include <syscalls.h>
+#include "memoryManager.h"
 #include "process.h"
 
 #define STDIN  0
