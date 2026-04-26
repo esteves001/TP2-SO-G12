@@ -27,3 +27,8 @@ Se agregaron los archivos process.c y process.h en el .h se encuentra la estruct
 Tambien se agrego el enum de estados y se agrega el estado de muerto para saber cuando retirarlo del array de procesos.
 Funcionalidades crear, eliminar, bloquear y desbloquear un proceso.
 Scheduler basico pero funcional por lo pronto.
+
+## 5. Pipes
+En process.h se adiciono la estructura del pipe y funciones de pipes (escritura, lectura, cerrar y crear). 
+Por lo pronto un pipe tiene un buffer no tan grande respecto a la pagina, se puede modificar.
+Tambien se modificaron funciones anteriores para que se adapten a los pipes.

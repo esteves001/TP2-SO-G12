@@ -74,7 +74,9 @@ void create_process(void * entry_point, const char * process_name) { // Le puse 
 
     new_process->rsp = (uint64_t) stack;
     new_process->state = READY;
-    memcpy(new_process->process_name, process_name, strlenght(process_name+1)); // Si se rompe algo chequear el strlength capaz es por null
+    memcpy(new_process->process_name, process_name, strlenght(process_name)+1); // Si se rompe algo chequear el strlength capaz es por null
+    new_process->pipe_in = NULL;
+    new_process->pipe_out = NULL;
         
     for(int i = 0 ; i < MAX_PROCESSES ; i++) {
         if( process_table[i] == NULL) {
@@ -88,8 +90,11 @@ void create_process(void * entry_point, const char * process_name) { // Le puse 
 }
 
 void exit_process() {
+    pipe_close(current_process->pipe_in);
+    pipe_close(current_process->pipe_out);
     current_process->state = KILLED;
-    //yield() si el scheduler lo llega a elegir que suelte el cpu rapido en alguna iteracion lo va a limpiar, ver despues
+
+    //yield() si el scheduler lo llega a elegir que suelte el cpu rapido en alguna iteracion lo va a limpiar, ver despues que onda
 }
 void block_process(uint64_t pid) {
     if(pid > 0 && process_table[pid-1] != NULL) process_table[pid-1]->state = BLOCKED;
@@ -108,6 +113,73 @@ uint64_t get_pid_count() {
     for(int i = 0 ; i < MAX_PROCESSES ; i++) {
         if(process_table[i] != NULL) to_return++;
     }
+
+    return to_return;
 }
 
+pipe_t * pipe_create() { 
+    // En este caso al pipe se le da el espacio de una pagina, puede ser que se desperdicie bastante memoria
+    void * page = allocate_page();
+    if(page == NULL) return NULL;
+    
+    pipe_t * new_pipe = (pipe_t *)page; // Es importante el casteo para que la pagina sea vista como un pipe
+
+    new_pipe->read_pos = 0;
+    new_pipe->write_pos = 0;
+    new_pipe->count = 0;
+    new_pipe->active = 1;
+    new_pipe->waiting_pid = 0;
+    
+    return new_pipe;
+}
+
+int pipe_write(pipe_t * pipe, char * buf, int n) {
+    if(pipe == NULL || pipe->active == 0) return 0; // No escribio nada
+
+    int written = 0;
+
+    for(int i = 0 ; i < n && pipe->count < PIPE_BUFFER_SIZE ;  i++) {
+        pipe->buffer[pipe->write_pos] = buf[i];
+        pipe->write_pos = (pipe->write_pos + 1) % PIPE_BUFFER_SIZE; //esto es para que escriba de manera circular, no se si esta bien
+        pipe->count++;
+        written++;
+    }
+
+    if(pipe->waiting_pid != 0) {
+        unblock_process(pipe->waiting_pid);
+        pipe->waiting_pid = 0;
+    }
+
+    return written;
+}
+
+int pipe_read(pipe_t * pipe, char * buf, int n) {
+    if(pipe == NULL || pipe->active == 0) return 0; // No leo nada
+
+    int read = 0;
+
+    for(int i = 0 ; i < n && pipe->count > 0; i++) {
+        buf[i] = pipe->buffer[pipe->read_pos];
+        pipe->read_pos = (pipe->read_pos + 1) % PIPE_BUFFER_SIZE;
+        pipe->count--;
+        read++;
+    }
+
+    if(pipe->waiting_pid != 0) {
+        unblock_process(pipe->waiting_pid);
+        pipe->waiting_pid = 0;
+    }
+
+    return read;
+}
+
+void pipe_close(pipe_t* pipe) {
+    if(pipe == NULL) return;
+    pipe->active = 0;
+    if(pipe->waiting_pid != 0) {
+        unblock_process(pipe->waiting_pid);
+        pipe->waiting_pid = 0;
+    }
+    free_page(pipe);
+}
 
