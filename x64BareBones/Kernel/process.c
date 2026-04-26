@@ -15,13 +15,13 @@ void scheduler() {
     // Limpio los procesos killed, esto capaz se pueda optimizar para no tener que recorrer todo el array 
     for(int i = 0 ; i < MAX_PROCESSES ; i++) {
         if(process_table[i] != NULL && process_table[i]->state == KILLED) {
-            //freePage(process_table[i]->rsp);
+            free_page(process_table[i]);
             process_table[i] = NULL;  
         }
     }
 
     if(current_process != NULL && current_process->state == RUNNING) {
-        // Cambiar el estado del proceso actual a ready o bloqued, hay que estudiarlo un poco
+        current_process->state = READY; // Si esta corriendo directamente lo pongo en ready sino el proceso se bloquea solo
     }
 
     for(int i = 0 ; i < MAX_PROCESSES ; i++) {

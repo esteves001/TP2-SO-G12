@@ -13,6 +13,8 @@ typedef struct {
     uint64_t rsp;       // Puntero al stack para el scheduler
     char * process_name;      // Nombre del proceso
     int state;      // Estado del proceso(blocked, running, ready, killed es un estado inventado para saber cuando se debe retirar un proceso)
+    //int quantum;          // ticks que le quedan
+    //int base_quantum;     // quantum original para resetear
 } pcb_t;
 
 extern pcb_t* current_process; // Puntero al proceso actual corriendo
