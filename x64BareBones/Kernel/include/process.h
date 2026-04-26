@@ -25,4 +25,8 @@ void exit_process();    // Termina el proceso actual
 void block_process(uint64_t pid);
 void unblock_process(uint64_t pid);
 
+// Funciones utiles segun claude
+pcb_t* get_process(uint64_t pid); // Buscar proceso por pid, util internamente
+uint64_t get_pid_count();         // Cuantos procesos hay corriendo, util para debug
+
 #endif  

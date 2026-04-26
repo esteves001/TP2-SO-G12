@@ -1,5 +1,5 @@
 #include "process.h"
-#include "memory_manager.h"
+#include "memoryManager.h"
 #include "lib.h"
 
 static int last_run_index = 0; // Para hacer round robin
@@ -12,11 +12,11 @@ uint64_t sys_get_pid() {
 
 void scheduler() {
 
-    // Limpio los procesos killed, esto capaz se pueda optimizar para no tener que recorrer todos el array 
+    // Limpio los procesos killed, esto capaz se pueda optimizar para no tener que recorrer todo el array 
     for(int i = 0 ; i < MAX_PROCESSES ; i++) {
         if(process_table[i] != NULL && process_table[i]->state == KILLED) {
             //freePage(process_table[i]->rsp);
-            process_table[i] = NULL; 
+            process_table[i] = NULL;  
         }
     }
 
@@ -97,6 +97,17 @@ void block_process(uint64_t pid) {
 
 void unblock_process(uint64_t pid) {
     if(pid > 0 && process_table[pid-1] != NULL) process_table[pid-1]->state = READY;
+}
+
+pcb_t * get_process(uint64_t pid) {
+    return process_table[pid-1];
+}
+
+uint64_t get_pid_count() {
+    uint64_t to_return = 0;
+    for(int i = 0 ; i < MAX_PROCESSES ; i++) {
+        if(process_table[i] != NULL) to_return++;
+    }
 }
 
 
