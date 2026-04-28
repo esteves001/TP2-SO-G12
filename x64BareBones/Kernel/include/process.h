@@ -6,7 +6,7 @@
 
 #define MAX_PROCESSES 16
 #define PIPE_BUFFER_SIZE 256
-
+ 
 typedef enum { READY = 0, RUNNING, BLOCKED, KILLED } process_state;
 
 typedef struct {

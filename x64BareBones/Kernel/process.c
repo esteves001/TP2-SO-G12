@@ -49,7 +49,7 @@ void create_process(void * entry_point, const char * process_name) { // Le puse 
 
     // Esto es inicializacion de registros, hice copy paste de claude
     // Marco de iretq (lo que la CPU restaura) 
-    *(--stack) = 0x10;                    // SS  (data segment)
+    *(--stack) = 0x0;                    // SS  (data segment)
     *(--stack) = (uint64_t)((uint8_t*)page + PAGE_SIZE); // RSP
     *(--stack) = 0x202;                   // RFLAGS (interrupciones habilitadas)
     *(--stack) = 0x08;                    // CS  (code segment)
@@ -86,14 +86,14 @@ void create_process(void * entry_point, const char * process_name) { // Le puse 
         }
     }
 
-    free_page(page); //si no se pudo alocar la memoria libero la page    
+    free_page(page); //si no se pudo alocar la memoria libero la page  
+    // agregar int 0x20 forzar a cortar al timertick, esto es para que si agrego un proceso con prioridad se ejecute ese.  
 }
 
 void exit_process() {
     pipe_close(current_process->pipe_in);
     pipe_close(current_process->pipe_out);
     current_process->state = KILLED;
-
     //yield() si el scheduler lo llega a elegir que suelte el cpu rapido en alguna iteracion lo va a limpiar, ver despues que onda
 }
 void block_process(uint64_t pid) {

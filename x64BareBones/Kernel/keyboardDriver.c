@@ -50,10 +50,10 @@ static unsigned int buffer_write_idx = 0;
 static unsigned int buffer_read_idx = 0;
 static unsigned int buffer_count = 0;
 
-char procesScanCode(unsigned int scancode)
+char procesScanCode(unsigned int scancode) //modifique los valores de los returns para que no de warning puse todo en 0, no se si esta bien.
 {
     if (scancode == 0) {
-        return;
+        return 0;
     }
 
     /*
@@ -69,21 +69,21 @@ char procesScanCode(unsigned int scancode)
     switch (make_code) {
         case SC_LSHIFT_PRESS:
             kbd_modifier_state.lshift = is_press;
-            return;
+            return 0;
         case SC_RSHIFT_PRESS:
             kbd_modifier_state.rshift = is_press;
-            return;
+            return 0;
         case SC_CAPSLOCK_PRESS:
             if (is_press) { // CapsLock es un toggle, actúa solo al apretar
                 kbd_modifier_state.caps_lock_on = !kbd_modifier_state.caps_lock_on;
             }
-            return;
+            return 0;
         case SC_CTRL_PRESS:
             kbd_modifier_state.ctrl = is_press;
-            return;
+            return 0;
         case SC_ALT_PRESS:
             kbd_modifier_state.alt = is_press;
-            return;
+            return 0;
     }
 
     // 2. Si es un "press" de una tecla no modificadora, procesar para agarrar el carácter
@@ -99,7 +99,7 @@ char procesScanCode(unsigned int scancode)
 
         // Si es no imprimible o no esta mapeada
         if (char_normal == 0) {
-            return;
+            return 0;
         }
 
         int is_alpha_lower = (char_normal >= 'a' && char_normal <= 'z');
