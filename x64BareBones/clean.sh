@@ -1,5 +1,4 @@
 #!/bin/bash
-docker start TPE
-docker exec -it TPE make clean -C /root/Toolchain
-docker exec -it TPE make clean -C /root/
-docker stop TPE
+# Borra todos los .o, binarios e imagenes generadas.
+docker run --rm -v "$PWD":/root --security-opt seccomp=unconfined \
+    agodio/itba-so-multiarch:3.1 bash -c "cd /root && make clean"
