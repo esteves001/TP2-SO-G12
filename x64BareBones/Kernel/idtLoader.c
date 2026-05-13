@@ -28,10 +28,13 @@ void load_idt() {
 
   // interrupcion timer tick y teclado habilitadas
   // 1111 1100
-  picMasterMask(0xFC); 
+  picMasterMask(0xFC);
   picSlaveMask(0xFF);
-        
-	_sti();
+
+  // NO hacemos _sti() aca. Las interrupciones se prenden recien cuando
+  // start_first_process haga iretq con RFLAGS=0x202. Si las habilitamos
+  // aca, un timer tick puede entrar antes de crear los procesos y
+  // schedule_tick crashea derefereciando current_process == NULL.
 }
 
 static void setup_IDT_entry (int index, uint64_t offset) {

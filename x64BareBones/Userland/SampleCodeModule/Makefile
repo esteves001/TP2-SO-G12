@@ -6,8 +6,7 @@ LDSCRIPT   := sampleCodeModule.ld
 MY_CFLAGS  := $(GCCFLAGS) \
                -Iinclude \
                -IUserLib/include \
-               -ITerminal/lib \
-               -IPongisGolf/lib
+               -ITerminal/lib
 
 CSOURCES   := $(wildcard [^_]*.c)
 COBJECTS   := $(CSOURCES:.c=.o)
@@ -15,18 +14,15 @@ ASMSOURCES := $(wildcard *.asm)
 ASMOBJS    := $(ASMSOURCES:.asm:.o)
 LOADER_O   := _loader.o
 
-.PHONY: all clean UserLib Terminal PongisGolf
+.PHONY: all clean UserLib Terminal
 
-all: UserLib Terminal PongisGolf $(MODULE)
+all: UserLib Terminal $(MODULE)
 
 UserLib:
 	$(MAKE) -C UserLib
 
 Terminal:
 	$(MAKE) -C Terminal
-
-PongisGolf:
-	$(MAKE) -C PongisGolf
 
 $(LOADER_O): _loader.c
 	$(GCC) $(MY_CFLAGS) -c $< -o $@
@@ -39,14 +35,12 @@ $(LOADER_O): _loader.c
 
 $(MODULE): $(LOADER_O) $(COBJECTS) $(ASMOBJS) \
             UserLib/libuserland.a \
-            Terminal/libterminal.a \
-            PongisGolf/libpongisgolf.a
+            Terminal/libterminal.a
 	$(GCC) $(MY_CFLAGS) -T $(LDSCRIPT) \
-          $(LOADER_O) $(COBJECTS) $(ASMOBJS) Terminal/libterminal.a PongisGolf/libpongisgolf.a UserLib/libuserland.a \
+          $(LOADER_O) $(COBJECTS) $(ASMOBJS) Terminal/libterminal.a UserLib/libuserland.a \
           -o ../$(MODULE) $(LDFLAGS)
 
 clean:
 	rm -f $(LOADER_O) $(COBJECTS) $(ASMOBJS) ../$(MODULE)
 	$(MAKE) -C UserLib clean
 	$(MAKE) -C Terminal clean
-	$(MAKE) -C PongisGolf clean

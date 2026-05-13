@@ -1,8 +1,39 @@
 #include "process.h"
 #include "memoryManager.h"
 #include "lib.h"
+#include "interrupts.h" // para _hlt() en idle_process
+#include "timeLib.h"    // para timer_handler() en schedule_tick
+
+// definiciones de los globales declarados extern en process.h
+// arrancan en NULL/0 porque al boot todavia no hay ningun proceso
+pcb_t * current_process = NULL;
+pcb_t * process_table[MAX_PROCESSES] = {0}; // todos los slots libres al principio
 
 static int last_run_index = 0; // Para hacer round robin
+
+// proceso idle: corre cuando no hay nadie mas READY
+// hlt duerme al CPU hasta la proxima interrupcion (no quema CPU al pedo)
+static void idle_process() {
+    while(1) {
+        _hlt();
+    }
+}
+
+// helper publico para crear el idle, idle_process es static a este archivo
+void create_idle_process() {
+    create_process(&idle_process, "idle");
+}
+
+// llamado desde _irq00Handler con el rsp actual del proceso que se interrumpio.
+// guarda ese rsp en el PCB, corre el scheduler, y devuelve el rsp del proximo.
+uint64_t schedule_tick(uint64_t current_rsp) {
+    if(current_process != NULL) {
+        current_process->rsp = current_rsp;
+    }
+    timer_handler(); // ticks++, para que sleep() siga andando
+    scheduler();     // elige el nuevo current_process
+    return current_process->rsp;
+}
 
 uint64_t sys_get_pid() {
     if(current_process == NULL) return -1; // chequeo si el proceso es null
@@ -23,7 +54,7 @@ void scheduler() {
     if(current_process != NULL && current_process->state == RUNNING) {
         current_process->state = READY; // Si esta corriendo directamente lo pongo en ready sino el proceso se bloquea solo
     }
-
+    //Busca el siguiente READY. El primero que esté READY es el nuevo current_process. (Round Robin)
     for(int i = 0 ; i < MAX_PROCESSES ; i++) {
         int next = (last_run_index + i) % MAX_PROCESSES;
 
@@ -47,7 +78,7 @@ void create_process(void * entry_point, const char * process_name) { // Le puse 
     uint64_t * stack = (uint64_t*) ((uint8_t*)page + PAGE_SIZE); // Creacion del stack para el proceso
     pcb_t * new_process = (pcb_t *) page; // Castea la pagina para que se vea como un proceso
 
-    // Esto es inicializacion de registros, hice copy paste de claude
+    // Esto es inicializacion de registros
     // Marco de iretq (lo que la CPU restaura) 
     *(--stack) = 0x0;                    // SS  (data segment)
     *(--stack) = (uint64_t)((uint8_t*)page + PAGE_SIZE); // RSP
@@ -74,7 +105,13 @@ void create_process(void * entry_point, const char * process_name) { // Le puse 
 
     new_process->rsp = (uint64_t) stack;
     new_process->state = READY;
-    memcpy(new_process->process_name, process_name, strlenght(process_name)+1); // Si se rompe algo chequear el strlength capaz es por null
+    // copio el nombre acotado al tamaño del buffer, dejando lugar para el \0
+    int i = 0;
+    while(i < MAX_PROCESS_NAME - 1 && process_name[i] != 0) {
+        new_process->process_name[i] = process_name[i];
+        i++;
+    }
+    new_process->process_name[i] = 0; // terminador
     new_process->pipe_in = NULL;
     new_process->pipe_out = NULL;
         

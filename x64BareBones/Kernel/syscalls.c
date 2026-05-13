@@ -263,11 +263,6 @@ void syscallDispatcher(Registers_t *regs)
             regs->rax = 0;
             break;
 
-        case 0x30:
-            playSoundForDuration((uint32_t)arg1, (uint32_t)arg2);
-            regs->rax = 0;
-            break;
-
         case 0x40:
             sleep(arg1);
             regs->rax = 0;

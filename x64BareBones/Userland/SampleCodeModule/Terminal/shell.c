@@ -5,16 +5,16 @@
 #define SPECIAL_KEY_MAX_VALUE 5
 
 char* commands_str[] = {
-    "help", "exception 1", "exception 2", 
-    "pongisgolf", "zoom in", "zoom out",
+    "help", "exception 1", "exception 2",
+    "zoom in", "zoom out",
      "clear", "date", "registers", "busywait", "busywaitkernel", "exit"
     };
 
 
 typedef void (*ShellCommand)();
 static ShellCommand commands[] = {
-    help, exception_1, exception_2, 
-    startPongis, zoom_in, zoom_out, 
+    help, exception_1, exception_2,
+    zoom_in, zoom_out,
     clear_screen, printDateTime, getRegisters,
     busy_wait, busy_wait_kernel, exitShell};
 
@@ -115,12 +115,6 @@ void getRegisters() {
             printf("  %s: %x\n", register_names[i], registers[i]);
         }
     }
-}
-
-void startPongis(){
-    printf("Starting Pongis Golf...\n");
-    startPongisGolf();
-    clear_screen();
 }
 
 void notACommand(char* input){

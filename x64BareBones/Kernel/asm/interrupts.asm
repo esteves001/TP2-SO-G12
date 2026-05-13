@@ -4,6 +4,7 @@ GLOBAL picMasterMask
 GLOBAL picSlaveMask
 GLOBAL haltcpu
 GLOBAL _hlt
+GLOBAL start_first_process
 
 GLOBAL _irq00Handler
 GLOBAL _irq01Handler
@@ -23,6 +24,7 @@ EXTERN exceptionDispatcher
 EXTERN syscallDispatcher
 EXTERN keyboard_handler
 EXTERN getStackBase
+EXTERN schedule_tick
 
 section .rodata
     userland equ 0x400000
@@ -135,9 +137,18 @@ picSlaveMask:
     retn
 
 
-;8254 Timer (Timer Tick)
+;8254 Timer (Timer Tick) - handler con context switch
 _irq00Handler:
-	irqHandlerMaster 0
+	pushState              ; guardo los 15 GPR del proceso saliente en su stack
+	mov rdi, rsp           ; rdi = rsp actual (1er arg para schedule_tick)
+	call schedule_tick     ; devuelve en rax el rsp del proximo proceso
+	mov rsp, rax           ; cambio al stack del proximo
+
+	mov al, 20h            ; EOI al PIC master
+	out 20h, al
+
+	popState               ; restauro 15 GPR del nuevo proceso
+	iretq                  ; CPU restaura RIP/CS/RFLAGS/RSP/SS, salta a su RIP
 
 ;Keyboard
 _irq01Handler:
@@ -202,6 +213,15 @@ haltcpu:
 	cli
 	hlt
 	ret
+
+; void start_first_process(uint64_t rsp)
+; Hace el primer salto al primer proceso. No vuelve nunca.
+; System V x86-64: el primer argumento de una funcion C entra en rdi.
+; Por eso rdi = rsp del primer proceso (stack con los 20 registros ya pusheados).
+start_first_process:
+	mov rsp, rdi   ; pongo el CPU a usar el stack del primer proceso
+	popState       ; restauro sus 15 GPR
+	iretq          ; el CPU restaura RIP/CS/RFLAGS/RSP/SS y salta a su entry point
 
 ; Esto al final por la forma en la que hacemos
 ; lo del teclado no la usamos por ahora

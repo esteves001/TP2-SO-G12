@@ -21,7 +21,6 @@ GLOBAL sys_getDateTime
 GLOBAL sys_zoomIn
 GLOBAL sys_zoomOut
 
-GLOBAL sys_playSound
 GLOBAL sys_sleepMilli
 
 GLOBAL opCodeException
@@ -58,9 +57,6 @@ sys_drawCircle:         syscall 0x21    ;TODO: Organizar esto
 
 ; Teclado
 sys_kbdGetChar:         syscall 0x20
-
-; Sonido
-sys_playSound:          syscall 0x30
 
 ; Tiempo
 sys_sleepMilli:          syscall 0x40

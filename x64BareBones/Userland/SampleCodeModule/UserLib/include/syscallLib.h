@@ -31,10 +31,7 @@ extern void sys_zoomOut(void);
 
 extern void sys_getDateTime(dateTime *dt);
 extern uint64_t sys_getRegisters(uint64_t *registers);
-extern void sys_waitMilli(uint64_t milliseconds);
-
-// Sonido
-extern void sys_playSound(uint32_t frequency, uint32_t duration);
+extern void sys_sleepMilli(uint64_t milliseconds);
 
 extern void opCodeException();
 

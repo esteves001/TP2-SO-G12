@@ -6,6 +6,7 @@
 
 #define MAX_PROCESSES 16
 #define PIPE_BUFFER_SIZE 256
+#define MAX_PROCESS_NAME 32  // largo maximo del nombre de un proceso (incluyendo el \0)
  
 typedef enum { READY = 0, RUNNING, BLOCKED, KILLED } process_state;
 
@@ -21,13 +22,13 @@ typedef struct {
 typedef struct {
     uint64_t pid;       // Pid del proceso
     uint64_t rsp;       // Puntero al stack para el scheduler
-    char * process_name;      // Nombre del proceso
+    char process_name[MAX_PROCESS_NAME]; // array fijo, copiamos el nombre adentro del PCB
     int state;      // Estado del proceso(blocked, running, ready, killed es un estado inventado para saber cuando se debe retirar un proceso)
 
     pipe_t * pipe_in;   // pipe del que lee
     pipe_t * pipe_out;  // pipe al que escribe
 
-    // esto ni idea lo recomendo claude
+    // Ver si esto va
     //int quantum;          // ticks que le quedan
     //int base_quantum;     // quantum original para resetear
 } pcb_t;
@@ -40,9 +41,18 @@ void scheduler();
 
 // Funcionalidades de procesos
 void create_process(void * entry_point, const char * process_name);  // el entry_point es la direccion de memoria donde comienza el proceso
-void exit_process();    // Termina el proceso actual 
+void create_idle_process();   // crea el proceso idle (necesario al boot)
+void exit_process();    // Termina el proceso actual
 void block_process(uint64_t pid);
 void unblock_process(uint64_t pid);
+
+// Primer salto al primer proceso (implementado en asm). No vuelve nunca.
+// rsp = rsp del PCB del primer proceso
+void start_first_process(uint64_t rsp);
+
+// llamada desde el handler del timer tick (asm) para hacer context switch.
+// recibe el rsp del proceso saliente, devuelve el rsp del proceso entrante.
+uint64_t schedule_tick(uint64_t current_rsp);
 
 // Funciones utiles segun claude
 pcb_t* get_process(uint64_t pid); // Buscar proceso por pid, util internamente
