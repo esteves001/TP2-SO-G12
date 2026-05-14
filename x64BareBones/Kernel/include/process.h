@@ -33,6 +33,21 @@ typedef struct {
     //int base_quantum;     // quantum original para resetear
 } pcb_t;
 
+// Struct que devuelvo al userland en la syscall ps. NO es el PCB: es un
+// snapshot acotado con solo los campos que el user puede ver. Asi no expongo
+// punteros internos del kernel ni dependencias raras.
+// IMPORTANTE: esta misma definicion esta duplicada en syscallLib.h (userland).
+// Si toco campos aca tengo que tocarlos alla tambien (TODO: header compartido).
+typedef struct {
+    uint64_t pid;
+    char name[MAX_PROCESS_NAME];
+    int state;              // READY/RUNNING/BLOCKED (KILLED no aparece, lo filtro)
+    uint64_t rsp;
+    uint64_t stack_base;    // tope del stack = pcb + PAGE_SIZE
+    uint64_t priority;      // placeholder hasta que existan prioridades
+    int foreground;         // placeholder hasta que exista fg/bg
+} process_info_t;
+
 extern pcb_t* current_process; // Puntero al proceso actual corriendo
 extern pcb_t* process_table[MAX_PROCESSES]; // Por lo pronto tenemos el array estatico con max 16 procesos y ordenados por pid (pid = 1 -> process_table[0], ..)
 
@@ -42,7 +57,9 @@ void scheduler();
 // Funcionalidades de procesos
 void create_process(void * entry_point, const char * process_name);  // el entry_point es la direccion de memoria donde comienza el proceso
 void create_idle_process();   // crea el proceso idle (necesario al boot)
-void exit_process();    // Termina el proceso actual
+// Mata el proceso dado. Recibe el PCB para servir tanto a exit (paso current)
+// como a kill(pid) (paso process_table[pid-1]).
+void exit_process(pcb_t * proc);
 void block_process(uint64_t pid);
 void unblock_process(uint64_t pid);
 
@@ -57,6 +74,10 @@ uint64_t schedule_tick(uint64_t current_rsp);
 // Funciones utiles segun claude
 pcb_t* get_process(uint64_t pid); // Buscar proceso por pid, util internamente
 uint64_t get_pid_count();         // Cuantos procesos hay corriendo, util para debug
+
+// Llena buf con snapshot de los procesos vivos (no KILLED).
+// Devuelve cuantos escribio (acotado por max). Lo usa la syscall 0x28.
+int ps_snapshot(process_info_t * buf, int max);
 
 
 // Funcionalidades de pipes

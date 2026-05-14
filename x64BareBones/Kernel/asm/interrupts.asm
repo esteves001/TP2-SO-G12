@@ -5,6 +5,7 @@ GLOBAL picSlaveMask
 GLOBAL haltcpu
 GLOBAL _hlt
 GLOBAL start_first_process
+GLOBAL force_schedule
 
 GLOBAL _irq00Handler
 GLOBAL _irq01Handler
@@ -212,6 +213,18 @@ _int80Handler:
 haltcpu:
 	cli
 	hlt
+	ret
+
+; void force_schedule(void)
+; Truco: en vez de esperar a que el timer (PIT) tire IRQ0 cada ~18ms,
+; disparo a mano la interrupcion 0x20 con "int". El CPU no distingue
+; entre una IRQ de hardware y un "int" por software: salta al mismo
+; handler (_irq00Handler) -> hace pushState -> schedule_tick elige
+; otro proceso -> popState + iretq saltan al nuevo.
+; Lo uso desde el dispatcher de syscalls cuando necesito cambiar de
+; contexto YA (yield, exit, kill, block sobre uno mismo).
+force_schedule:
+	int 20h
 	ret
 
 ; void start_first_process(uint64_t rsp)

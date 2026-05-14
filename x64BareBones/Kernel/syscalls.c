@@ -1,6 +1,7 @@
 #include <syscalls.h>
 #include "memoryManager.h"
 #include "process.h"
+#include "interrupts.h"  // para force_schedule()
 
 #define STDIN  0
 #define STDOUT 1
@@ -254,7 +255,89 @@ void syscallDispatcher(Registers_t *regs)
             regs->rax = kbd_get_char();
             break;
         case 0x22:
+            // getpid: devuelvo el pid del que me llamo. Lo unico que hace
+            // es leer current_process->pid.
             regs->rax = get_pid();
+            break;
+
+        case 0x23:
+            // exit: termina el proceso actual.
+            // Marco KILLED y fuerzo un switch (int 0x20) porque sino seguiria
+            // ejecutando codigo muerto hasta el proximo timer tick.
+            // El scheduler libera la pagina cuando lo agarre.
+            exit_process(current_process);
+            force_schedule();
+            break;
+
+        case 0x24:
+            // yield: el proceso suelta la CPU voluntariamente.
+            // Igual que el timer tick: int 0x20 -> scheduler elige otro READY.
+            // Cuando me vuelvan a elegir, vuelvo aca y popState me restaura los regs.
+            force_schedule();
+            break;
+
+        case 0x25: {
+            // kill(pid): mata a otro proceso (o a mi mismo).
+            // Validacion: pid en rango y la entrada de la tabla tiene que existir.
+            // Si el pid es invalido devuelvo -1 (errno style).
+            uint64_t pid = arg1;
+            if(pid == 0 || pid > MAX_PROCESSES || process_table[pid-1] == NULL) {
+                regs->rax = (uint64_t)-1;
+                break;
+            }
+            exit_process(process_table[pid-1]);  // misma logica que exit pero sobre otro PCB
+            regs->rax = 0;
+            // Caso especial: me mate a mi mismo. No puedo seguir corriendo, fuerzo switch.
+            if(current_process != NULL && current_process->pid == pid) {
+                force_schedule();
+            }
+            break;
+        }
+
+        case 0x26: {
+            // block(pid): pone un proceso en BLOCKED. El scheduler lo va a saltar
+            // hasta que alguien lo unblockee.
+            uint64_t pid = arg1;
+            if(pid == 0 || pid > MAX_PROCESSES || process_table[pid-1] == NULL) {
+                regs->rax = (uint64_t)-1;
+                break;
+            }
+            block_process(pid);
+            regs->rax = 0;
+            // Si me bloquee a mi mismo, fuerzo un switch sino seguiria corriendo
+            // a pesar de estar marcado BLOCKED.
+            if(current_process != NULL && current_process->pid == pid) {
+                force_schedule();
+            }
+            break;
+        }
+
+        case 0x27: {
+            // unblock(pid): saca al proceso de BLOCKED, lo deja READY para que
+            // el scheduler lo pueda elegir de nuevo.
+            uint64_t pid = arg1;
+            if(pid == 0 || pid > MAX_PROCESSES || process_table[pid-1] == NULL) {
+                regs->rax = (uint64_t)-1;
+                break;
+            }
+            unblock_process(pid);
+            regs->rax = 0;
+            break;
+        }
+
+        case 0x28:
+            // ps: el user me pasa un buffer y un max. Lleno el buffer con un
+            // snapshot de la process_table (saltando NULL y KILLED) y devuelvo
+            // cuantos escribi. La shell despues lo formatea como quiera.
+            regs->rax = ps_snapshot((process_info_t *)arg1, (int)arg2);
+            break;
+
+        case 0x29:
+            // mem_stats: lleno el struct del user con total/used/free en bytes.
+            // El "total" es la memoria que el bitmap administra (post kernel y bitmap),
+            // no la RAM fisica entera, asi el "used" arranca en ~0 y es legible.
+            get_mem_stats((mem_info_t *)arg1);
+            regs->rax = 0;
             break;
 
         // TODO: este no quedo organizado como los demas

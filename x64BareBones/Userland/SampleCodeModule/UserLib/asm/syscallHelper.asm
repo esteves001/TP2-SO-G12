@@ -12,6 +12,15 @@ GLOBAL sys_getScreenHeight
 
 GLOBAL sys_kbdGetChar
 
+GLOBAL sys_getpid
+GLOBAL sys_exit
+GLOBAL sys_yield
+GLOBAL sys_kill
+GLOBAL sys_block
+GLOBAL sys_unblock
+GLOBAL sys_ps
+GLOBAL sys_mem_stats
+
 GLOBAL sys_write
 GLOBAL sys_read
 
@@ -60,6 +69,21 @@ sys_kbdGetChar:         syscall 0x20
 
 ; Tiempo
 sys_sleepMilli:          syscall 0x40
+
+; Procesos
+; Cada uno mete su numero en RAX, hace int 80h y vuelve. Los args ya vienen
+; en RDI/RSI/... por la convencion de System V que usa GCC, asi que no toco nada.
+; El kernel los lee en el dispatcher (Kernel/syscalls.c).
+sys_getpid:             syscall 0x22
+sys_exit:               syscall 0x23
+sys_yield:              syscall 0x24
+sys_kill:               syscall 0x25
+sys_block:              syscall 0x26
+sys_unblock:            syscall 0x27
+sys_ps:                 syscall 0x28
+
+; Memoria
+sys_mem_stats:          syscall 0x29
 
 opCodeException:
 	ud2

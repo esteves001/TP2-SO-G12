@@ -39,4 +39,9 @@ void picSlaveMask(uint8_t mask);
 //Termina la ejecución de la cpu.
 void haltcpu(void);
 
+// Fuerza un context switch a mano disparando int 0x20 (mismo vector que
+// el timer). Lo uso desde el dispatcher de syscalls cuando hay que cambiar
+// de proceso sin esperar al proximo tick (yield, exit, etc).
+void force_schedule(void);
+
 #endif /* INTERRUPS_H_ */

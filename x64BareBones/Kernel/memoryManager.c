@@ -84,5 +84,19 @@ void free_page(void* address) {
     free_pages++;
 }
 // En la memoria fisica queda como "basura", cuando otro porceso solicite
-// memoria, simplemente va a encontrar dicho marco de pagina libre y 
+// memoria, simplemente va a encontrar dicho marco de pagina libre y
 // va a pisar dicha "basura"
+
+// Lleno el struct con el estado actual del bitmap. No agrego contador nuevo
+// porque ya tengo total_pages y free_pages como static, y con eso me alcanza.
+// El "total" que reporto es la memoria que el manager realmente puede dar
+// (sin contar las paginas que se comen el kernel + bitmap), asi el "used"
+// arranca cerca de 0 al boot y es legible para el comando mem.
+// Si quisiera reportar la RAM fisica entera, seria total_pages * PAGE_SIZE.
+void get_mem_stats(mem_info_t * out) {
+    if(out == NULL) return;
+    uint64_t manageable_pages = total_pages - first_free_page;
+    out->total_bytes = manageable_pages * PAGE_SIZE;
+    out->free_bytes  = free_pages * PAGE_SIZE;
+    out->used_bytes  = (manageable_pages - free_pages) * PAGE_SIZE;
+}

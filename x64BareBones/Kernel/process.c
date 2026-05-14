@@ -127,11 +127,18 @@ void create_process(void * entry_point, const char * process_name) { // Le puse 
     // agregar int 0x20 forzar a cortar al timertick, esto es para que si agrego un proceso con prioridad se ejecute ese.  
 }
 
-void exit_process() {
-    pipe_close(current_process->pipe_in);
-    pipe_close(current_process->pipe_out);
-    current_process->state = KILLED;
-    //yield() si el scheduler lo llega a elegir que suelte el cpu rapido en alguna iteracion lo va a limpiar, ver despues que onda
+// Mata al proceso que le pase. Lo cambie para que reciba un PCB en vez de
+// trabajar siempre sobre current_process: asi me sirve para exit (paso current)
+// y para kill(pid) (paso process_table[pid-1]).
+// Notar que NO libero la pagina aca: solo marco KILLED. El scheduler la libera
+// la proxima vez que corra (ver el for de arriba en scheduler()). Esto es
+// importante porque si me mato a mi mismo, todavia estoy corriendo en mi
+// propio stack -> no lo puedo liberar todavia.
+void exit_process(pcb_t * proc) {
+    if(proc == NULL) return;
+    pipe_close(proc->pipe_in);
+    pipe_close(proc->pipe_out);
+    proc->state = KILLED;
 }
 void block_process(uint64_t pid) {
     if(pid > 0 && process_table[pid-1] != NULL) process_table[pid-1]->state = BLOCKED;
@@ -152,6 +159,38 @@ uint64_t get_pid_count() {
     }
 
     return to_return;
+}
+
+// Recorro la process_table y voy llenando el buffer del user con la info de
+// cada proceso vivo. Salto los NULL (slots libres) y los KILLED (zombis que
+// el scheduler todavia no limpio). Devuelvo cuantos escribi para que el user
+// sepa hasta donde leer. El "max" es el tope del buffer: si tiene menos
+// capacidad que MAX_PROCESSES, corto. Asi nunca me paso del buffer.
+int ps_snapshot(process_info_t * buf, int max) {
+    if(buf == NULL || max <= 0) return 0;
+    int written = 0;
+    for(int i = 0; i < MAX_PROCESSES && written < max; i++) {
+        pcb_t * p = process_table[i];
+        if(p == NULL || p->state == KILLED) continue;
+        process_info_t * out = &buf[written];
+        out->pid = p->pid;
+        // copio el nombre a mano (no tengo strncpy en kernel) acotando al buffer
+        int j = 0;
+        while(j < MAX_PROCESS_NAME - 1 && p->process_name[j] != 0) {
+            out->name[j] = p->process_name[j];
+            j++;
+        }
+        out->name[j] = 0;  // terminador
+        out->state = p->state;
+        out->rsp = p->rsp;
+        // truco: la pagina entera del proceso ES el PCB, asi que el stack
+        // empieza al final de esa pagina (creci hacia abajo desde ahi).
+        out->stack_base = (uint64_t)p + PAGE_SIZE;
+        out->priority = 0;     // todavia no implementamos prioridades
+        out->foreground = 0;   // todavia no implementamos fg/bg
+        written++;
+    }
+    return written;
 }
 
 pipe_t * pipe_create() { 

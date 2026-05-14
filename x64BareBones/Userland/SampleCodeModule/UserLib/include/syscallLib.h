@@ -33,6 +33,44 @@ extern void sys_getDateTime(dateTime *dt);
 extern uint64_t sys_getRegisters(uint64_t *registers);
 extern void sys_sleepMilli(uint64_t milliseconds);
 
+// Procesos
+// Wrappers de las syscalls de procesos. Cada uno corresponde a un case del
+// dispatcher en Kernel/syscalls.c (el numero esta en syscallHelper.asm).
+extern uint64_t sys_getpid(void);                  // 0x22 - mi pid
+extern void     sys_exit(void);                    // 0x23 - termino
+extern void     sys_yield(void);                   // 0x24 - cedo CPU
+extern int64_t  sys_kill(uint64_t pid);            // 0x25 - mato a otro (-1 si pid invalido)
+extern int64_t  sys_block(uint64_t pid);           // 0x26 - bloqueo
+extern int64_t  sys_unblock(uint64_t pid);         // 0x27 - desbloqueo
+
+// Struct que el kernel me llena con info de cada proceso para ps.
+// IMPORTANTE: definicion duplicada en Kernel/include/process.h.
+// Si toco campos aca tambien hay que tocarlos alla (TODO: header compartido).
+#define MAX_PROCESS_NAME 32
+typedef struct {
+    uint64_t pid;
+    char name[MAX_PROCESS_NAME];
+    int state;              // 0 READY, 1 RUNNING, 2 BLOCKED
+    uint64_t rsp;
+    uint64_t stack_base;
+    uint64_t priority;      // placeholder
+    int foreground;         // placeholder
+} process_info_t;
+
+// 0x28 - le paso un buffer y el max que entra; me devuelve cuantos llen.
+extern int sys_ps(process_info_t * buf, int max);
+
+// Estado del memory manager para el comando mem.
+// IMPORTANTE: definicion duplicada en Kernel/include/memoryManager.h.
+typedef struct {
+    uint64_t total_bytes;   // memoria que el manager puede dar (sin contar kernel/bitmap)
+    uint64_t used_bytes;
+    uint64_t free_bytes;
+} mem_info_t;
+
+// 0x29 - el kernel me rellena el struct con total/used/free.
+extern void sys_mem_stats(mem_info_t * out);
+
 extern void opCodeException();
 
 #endif
