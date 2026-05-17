@@ -60,6 +60,14 @@ typedef struct {
 // 0x28 - le paso un buffer y el max que entra; me devuelve cuantos llen.
 extern int sys_ps(process_info_t * buf, int max);
 
+// 0x30 - cambio la prio de un proceso. 0 si anduvo, -1 si pid o prio invalidos.
+// rango valido: 1..5 (MIN_PRIORITY..MAX_PRIORITY en el kernel).
+extern int64_t sys_nice(uint64_t pid, uint64_t new_priority);
+
+// 0x31 - userland crea un proceso. devuelve pid (>0) o -1 si fallo.
+// entry es un puntero a funcion dentro del modulo userland.
+extern int64_t sys_create_process(void * entry, const char * name, int argc, char ** argv);
+
 // Estado del memory manager para el comando mem.
 // IMPORTANTE: definicion duplicada en Kernel/include/memoryManager.h.
 typedef struct {

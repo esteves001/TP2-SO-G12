@@ -19,6 +19,8 @@ GLOBAL sys_kill
 GLOBAL sys_block
 GLOBAL sys_unblock
 GLOBAL sys_ps
+GLOBAL sys_nice
+GLOBAL sys_create_process
 GLOBAL sys_mem_stats
 
 GLOBAL sys_write
@@ -62,13 +64,12 @@ sys_drawHexa:           syscall 0x16
 sys_drawBin:            syscall 0x17
 sys_getScreenWidth:     syscall 0x18
 sys_getScreenHeight:    syscall 0x19
-sys_drawCircle:         syscall 0x21    ;TODO: Organizar esto
 
 ; Teclado
 sys_kbdGetChar:         syscall 0x20
 
-; Tiempo
-sys_sleepMilli:          syscall 0x40
+; Video (continuacion)
+sys_drawCircle:         syscall 0x21
 
 ; Procesos
 ; Cada uno mete su numero en RAX, hace int 80h y vuelve. Los args ya vienen
@@ -84,6 +85,15 @@ sys_ps:                 syscall 0x28
 
 ; Memoria
 sys_mem_stats:          syscall 0x29
+
+; Prioridades
+sys_nice:               syscall 0x30
+
+; Procesos (continuacion)
+sys_create_process:     syscall 0x31
+
+; Tiempo
+sys_sleepMilli:         syscall 0x40
 
 opCodeException:
 	ud2

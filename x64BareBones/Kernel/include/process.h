@@ -7,6 +7,16 @@
 #define MAX_PROCESSES 16
 #define PIPE_BUFFER_SIZE 256
 #define MAX_PROCESS_NAME 32  // largo maximo del nombre de un proceso (incluyendo el \0)
+
+// rango de prioridades. el numero es cuantos ticks corre el proceso por turno.
+// prio alta -> corre mas seguido, prio baja -> menos. default 1.
+#define MIN_PRIORITY 1
+#define MAX_PRIORITY 5
+#define DEFAULT_PRIORITY 1
+
+// limites del area de argv adentro del page del proceso
+#define MAX_ARGS 8       // hasta 8 args (argv[0]..argv[7]), alcanza para shell
+#define MAX_ARG_LEN 32   // cada arg hasta 31 chars + \0
  
 typedef enum { READY = 0, RUNNING, BLOCKED, KILLED } process_state;
 
@@ -28,9 +38,8 @@ typedef struct {
     pipe_t * pipe_in;   // pipe del que lee
     pipe_t * pipe_out;  // pipe al que escribe
 
-    // Ver si esto va
-    //int quantum;          // ticks que le quedan
-    //int base_quantum;     // quantum original para resetear
+    uint64_t priority;        // 1..5, default 1
+    uint64_t ticks_remaining; // cuantos ticks me quedan en este turno
 } pcb_t;
 
 // Struct que devuelvo al userland en la syscall ps. NO es el PCB: es un
@@ -55,13 +64,20 @@ uint64_t sys_get_pid();
 void scheduler();
 
 // Funcionalidades de procesos
-void create_process(void * entry_point, const char * process_name);  // el entry_point es la direccion de memoria donde comienza el proceso
+// argc/argv pueden ser 0/NULL si el proceso no usa args (ej: idle).
+// Las strings se COPIAN dentro de la pagina del proceso, no me quedo con
+// punteros al stack del caller.
+// devuelve el pid creado (>0) o -1 si fallo.
+int64_t create_process(void * entry_point, const char * process_name, int argc, char ** argv);
 void create_idle_process();   // crea el proceso idle (necesario al boot)
 // Mata el proceso dado. Recibe el PCB para servir tanto a exit (paso current)
 // como a kill(pid) (paso process_table[pid-1]).
 void exit_process(pcb_t * proc);
 void block_process(uint64_t pid);
 void unblock_process(uint64_t pid);
+
+// cambio la prio de un proceso. devuelve 0 si anduvo, -1 si pid o prio invalidos.
+int set_priority(uint64_t pid, uint64_t new_priority);
 
 // Primer salto al primer proceso (implementado en asm). No vuelve nunca.
 // rsp = rsp del PCB del primer proceso

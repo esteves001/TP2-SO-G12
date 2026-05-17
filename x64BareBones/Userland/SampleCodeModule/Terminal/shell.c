@@ -1,13 +1,13 @@
 #include <shell.h>
 
 #define BUFFER 500
-#define COMMAND_SIZE 13
+#define COMMAND_SIZE 14
 #define SPECIAL_KEY_MAX_VALUE 5
 
 char* commands_str[] = {
     "help", "exception 1", "exception 2",
     "zoom in", "zoom out",
-     "clear", "date", "registers", "busywait", "busywaitkernel", "mem", "ps", "exit"
+     "clear", "date", "registers", "busywait", "busywaitkernel", "mem", "ps", "test_prio", "exit"
     };
 
 
@@ -16,7 +16,7 @@ static ShellCommand commands[] = {
     help, exception_1, exception_2,
     zoom_in, zoom_out,
     clear_screen, printDateTime, getRegisters,
-    busy_wait, busy_wait_kernel, mem_cmd, ps_cmd, exitShell};
+    busy_wait, busy_wait_kernel, mem_cmd, ps_cmd, test_prio_cmd, exitShell};
 
 char *registers[] = {
     " RAX: ", " RBX: ", " RCX: ",
@@ -207,4 +207,12 @@ void ps_cmd() {
     for (int i = 0; i < n; i++) {
         printf("%d\t%s\t%s\n", buf[i].pid, buf[i].name, state_str(buf[i].state));
     }
+}
+
+// lanza el test_prio: 3 workers en y=300/320/340 con prios 1/3/5. el azul (C)
+// deberia terminar primero. no espera a que terminen, vuelve al prompt.
+void test_prio_cmd() {
+    test_prio_main(0, NULL);
+    printf("test_prio lanzado: 3 workers (A rojo prio1, B verde prio3, C azul prio5).\n");
+    printf("C deberia llegar al '*' primero.\n");
 }

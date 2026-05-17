@@ -253,6 +253,12 @@ void syscallDispatcher(Registers_t *regs)
         case 0x20:
             regs->rax = kbd_get_char();
             break;
+
+        case 0x21:
+            drawCircle(arg1, (uint32_t)arg2, arg3, arg4);
+            regs->rax = 0;
+            break;
+
         case 0x22:
             // getpid: devuelvo el pid del que me llamo. Lo unico que hace
             // es leer current_process->pid.
@@ -339,10 +345,27 @@ void syscallDispatcher(Registers_t *regs)
             regs->rax = 0;
             break;
 
-        // TODO: este no quedo organizado como los demas
-        case 0x21:
-            drawCircle(arg1, (uint32_t)arg2, arg3, arg4);
-            regs->rax = 0;
+        case 0x30:
+            // nice(pid, new_prio): cambio la prioridad de un proceso.
+            // devuelve 0 si anduvo, -1 si pid o prio invalidos.
+            regs->rax = (uint64_t)(int64_t)set_priority(arg1, arg2);
+            break;
+
+        case 0x31:
+            // create_process: userland crea un proceso. devuelve pid o -1.
+            // arg1=entry, arg2=name, arg3=argc, arg4=argv.
+            // TODO seguridad: hoy SOLO valido que entry >= 0x400000 (donde
+            // arranca el modulo userland). NO valido que el name/argv sean
+            // punteros legales ni que el rango este dentro del binario.
+            // Sin separacion kernel/user (todos corren en ring 0) cualquier
+            // userland puede saltar a codigo del kernel. Hay que arreglarlo
+            // cuando metamos modo usuario real.
+            if(arg1 < 0x400000) {
+                regs->rax = (uint64_t)-1;
+                break;
+            }
+            regs->rax = (uint64_t)create_process((void *)arg1, (const char *)arg2,
+                                                 (int)arg3, (char **)arg4);
             break;
 
         case 0x40:
