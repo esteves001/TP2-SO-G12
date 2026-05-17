@@ -1,13 +1,13 @@
 #include <shell.h>
 
 #define BUFFER 500
-#define COMMAND_SIZE 12
+#define COMMAND_SIZE 13
 #define SPECIAL_KEY_MAX_VALUE 5
 
 char* commands_str[] = {
     "help", "exception 1", "exception 2",
     "zoom in", "zoom out",
-     "clear", "date", "registers", "busywait", "busywaitkernel", "exit"
+     "clear", "date", "registers", "busywait", "busywaitkernel", "mem", "ps", "exit"
     };
 
 
@@ -16,7 +16,7 @@ static ShellCommand commands[] = {
     help, exception_1, exception_2,
     zoom_in, zoom_out,
     clear_screen, printDateTime, getRegisters,
-    busy_wait, busy_wait_kernel, exitShell};
+    busy_wait, busy_wait_kernel, mem_cmd, ps_cmd, exitShell};
 
 char *registers[] = {
     " RAX: ", " RBX: ", " RCX: ",
@@ -170,8 +170,41 @@ void busy_wait() {
 
 void busy_wait_kernel() {
     printf("Running kernel busy-wait. Press Ctrl+R now.\n");
-    
+
     sleepMilli(5000);
 
     printf("Kernel busy-wait finished.\n");
+}
+
+// pido al kernel cuanta memoria hay total/usada/libre y la imprimo en KB.
+// el "total" no es la RAM fisica entera, es lo que el bitmap puede dar
+// (ya restado el kernel y el bitmap mismo). granularidad es de pagina (4KB).
+void mem_cmd() {
+    mem_info_t info;
+    sys_mem_stats(&info);
+    printf("Memory:\n");
+    printf("  total: %d KB\n", info.total_bytes / 1024);
+    printf("  used:  %d KB\n", info.used_bytes / 1024);
+    printf("  free:  %d KB\n", info.free_bytes / 1024);
+}
+
+// chiquito helper para no imprimir 0/1/2 sino el nombre del estado.
+static const char * state_str(int s) {
+    if (s == 0) return "READY";
+    if (s == 1) return "RUNNING";
+    if (s == 2) return "BLOCKED";
+    return "??";
+}
+
+// le paso al kernel un buffer mio (en el stack) y el max que entra.
+// me devuelve cuantos procesos copio adentro. itero e imprimo pid/name/state.
+// priority y foreground por ahora son placeholders, no los muestro.
+#define MAX_PS 32
+void ps_cmd() {
+    process_info_t buf[MAX_PS];
+    int n = sys_ps(buf, MAX_PS);
+    printf("PID\tNAME\tSTATE\n");
+    for (int i = 0; i < n; i++) {
+        printf("%d\t%s\t%s\n", buf[i].pid, buf[i].name, state_str(buf[i].state));
+    }
 }

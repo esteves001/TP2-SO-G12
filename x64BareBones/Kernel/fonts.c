@@ -308,12 +308,6 @@ static const int font_heights[FONTS] = {
     FONT_CHAR_HEIGHT_MEDIUM_BYTES,
     FONT_CHAR_HEIGHT_LARGE_BYTES
 };
-static const uint32_t font_masks[FONTS] = {
-    FONT_MASK_SMALL,
-    FONT_MASK_SMALL,
-    FONT_MASK_SMALL
-};
-
 int getCurrentFontWidth(void) {
     return font_widths[currentFont];
 }

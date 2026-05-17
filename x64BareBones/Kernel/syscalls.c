@@ -151,8 +151,7 @@ void syscallDispatcher(Registers_t *regs)
     uint64_t arg2 = regs->rsi;
     uint64_t arg3 = regs->rdx;
     uint64_t arg4 = regs->rcx;
-    uint64_t arg5 = regs->r8;
-    uint64_t arg6 = regs->r9;
+    // arg5/arg6 (r8/r9) los agrego cuando un syscall los necesite.
 
     /*
         Las que son 0x1... son syscalls de video

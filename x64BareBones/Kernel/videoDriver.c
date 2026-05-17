@@ -47,7 +47,10 @@ typedef struct vbe_mode_info_structure * VBEInfoPtr;
 VBEInfoPtr VBE_mode_info = (VBEInfoPtr) 0x0000000000005C00;
 
 void putPixel(uint32_t hexColor, uint64_t x, uint64_t y) {
-    uint8_t * framebuffer = (uint8_t *) VBE_mode_info->framebuffer;
+    // doble cast: primero a uintptr_t (entero del tamaño de un puntero) y
+    // despues al puntero. Sin esto gcc se queja porque framebuffer en VBE
+    // es uint32_t y nosotros somos x86_64 (punteros de 64 bits).
+    uint8_t * framebuffer = (uint8_t *) (uintptr_t) VBE_mode_info->framebuffer;
     uint64_t offset = (x * ((VBE_mode_info->bpp)/8)) + (y * VBE_mode_info->pitch);
     framebuffer[offset]     =  (hexColor) & 0xFF;
     framebuffer[offset+1]   =  (hexColor >> 8) & 0xFF; 
@@ -148,18 +151,6 @@ void drawRectangle(uint64_t width, uint64_t heigth, uint32_t hexColor, uint64_t 
 			putPixel(hexColor, i, j);
 		}
 	}
-}
-
-static void plotCircleOctants(uint32_t hexColor, int64_t xc, int64_t yc, int64_t dx, int64_t dy)
-{  
-    putPixelIfValid(hexColor, xc + dx, yc + dy);
-    putPixelIfValid(hexColor, xc - dx, yc + dy);
-    putPixelIfValid(hexColor, xc + dx, yc - dy);
-    putPixelIfValid(hexColor, xc - dx, yc - dy);
-    putPixelIfValid(hexColor, xc + dy, yc + dx);
-    putPixelIfValid(hexColor, xc - dy, yc + dx);
-    putPixelIfValid(hexColor, xc + dy, yc - dx);
-    putPixelIfValid(hexColor, xc - dy, yc - dx);
 }
 
 static void drawHLine(uint32_t hexColor, int64_t x1, int64_t x2, int64_t y) {
