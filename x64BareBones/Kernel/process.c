@@ -127,7 +127,7 @@ void scheduler() {
     current_process = NULL; // no deberia pasar nunca
 }
 
-int64_t create_process(void * entry_point, const char * process_name, int argc, char ** argv) { // Le puse const para que no de warning strlength
+int64_t create_process(void * entry_point, const char * process_name, int argc, char ** argv) {
     if(entry_point == NULL || process_name == NULL) return -1;
 
     void * page = allocate_page();
@@ -179,8 +179,8 @@ int64_t create_process(void * entry_point, const char * process_name, int argc, 
     new_process->process_name[i] = 0; // terminador
     new_process->pipe_in = NULL;
     new_process->pipe_out = NULL;
-    new_process->priority = DEFAULT_PRIORITY;
-    new_process->ticks_remaining = DEFAULT_PRIORITY;
+    new_process->priority = MIN_PRIORITY;
+    new_process->ticks_remaining = MIN_PRIORITY;
         
     for(int i = 0 ; i < MAX_PROCESSES ; i++) {
         if( process_table[i] == NULL) {

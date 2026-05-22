@@ -7,12 +7,11 @@
 #define MAX_PROCESSES 16
 #define PIPE_BUFFER_SIZE 256
 #define MAX_PROCESS_NAME 32  // largo maximo del nombre de un proceso (incluyendo el \0)
-
+ 
 // rango de prioridades. el numero es cuantos ticks corre el proceso por turno.
-// prio alta -> corre mas seguido, prio baja -> menos. default 1.
-#define MIN_PRIORITY 1
+// prio alta -> corre mas seguido, prio baja -> menos. default es la minima.
+#define MIN_PRIORITY 1  
 #define MAX_PRIORITY 5
-#define DEFAULT_PRIORITY 1
 
 // limites del area de argv adentro del page del proceso
 #define MAX_ARGS 8       // hasta 8 args (argv[0]..argv[7]), alcanza para shell
