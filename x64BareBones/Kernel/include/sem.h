@@ -12,7 +12,7 @@
 typedef struct{
     int id;     //id unico del sem no se si es necesario comienza en 1 hasta el 16
     int status;    // valor del semaforo -1, 0 ,1 ,2
-    char lock;     // 0 si esta abierto 1 si esta cerrado
+    int lock;     // 0 si esta released 1 si esta acquired
     char sem_name[MAX_SEM_NAME];
     uint64_t blocked_pids[MAX_BLOCKED_PIDS]; 
     int blocked_pids_counter;   //inicializado en 0
@@ -25,4 +25,4 @@ void sem_wait(int sem_id);
 int create_sem(int sem_id, int status, const char * sem_name); //devuelve int porque automaticamente se agregaria al arreglo queda guardado ahi 1 si es valida la creacion 0 sino
 void delete_sem(int sem_id);
 
-#endif
+#endif 

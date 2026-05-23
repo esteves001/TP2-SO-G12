@@ -32,7 +32,7 @@ void delete_sem(int sem_id) {
             sem_arr[i].id = 0; 
             return;
         }
-    }
+    }    
 }
 
 static int valid_sem_id(int sem_id) {

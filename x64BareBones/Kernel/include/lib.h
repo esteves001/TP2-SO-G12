@@ -12,4 +12,8 @@ char *uint64ToString(uint64_t value, char *buffer, int base);
 extern void refresh_registers();
 extern uint64_t *get_registers();
 
+extern int xchg(int *lock);
+void acquire(int *lock);                
+void release(int *lock);               
+
 #endif

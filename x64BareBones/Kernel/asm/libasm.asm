@@ -6,6 +6,7 @@ GLOBAL getSysDayOfWeek
 GLOBAL getSysDayOfMonth
 GLOBAL getSysMonth
 GLOBAL getSysYear
+GLOBAL xchg
 
 GLOBAL getKeyCode
 
@@ -216,3 +217,17 @@ inb:
     in al, dx
     movzx rax, al
     ret
+
+;extern int _xchg(int *lock rdi, int value rsi);
+xchg:
+	push rbp
+	mov rbp, rsp
+
+	mov eax, 1
+	xchg [rdi], eax
+
+	mov rsp, rbp
+	pop rpb
+	ret
+
+; esto se implementa aca para que el tt no interrumpa mientras se modifica la var

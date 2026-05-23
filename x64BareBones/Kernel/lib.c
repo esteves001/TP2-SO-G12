@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include "lib.h"
 
 void * memset(void * destination, int32_t c, uint64_t length)
 {
@@ -78,4 +79,12 @@ char* uint64ToString(uint64_t value, char *buffer, int base) {
         *p1++ = tmp;
     }
     return buffer;
+}
+
+void acquire(int *lock) { 
+	while(xchg(lock) != 0);
+}   
+
+void release(int *lock) {
+	*lock = 0;
 }
