@@ -227,7 +227,7 @@ xchg:
 	xchg [rdi], eax
 
 	mov rsp, rbp
-	pop rpb
+	pop rbp
 	ret
 
 ; esto se implementa aca para que el tt no interrumpa mientras se modifica la var

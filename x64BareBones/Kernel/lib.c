@@ -50,7 +50,7 @@ void * memcpy(void * destination, const void * source, uint64_t length)
 	return destination;
 }
 
-unsigned int strlenght(const char* str)
+unsigned int strlenght(const char* str) 
 {
 	unsigned int counter;
 	for (counter = 0; str[counter];counter++);

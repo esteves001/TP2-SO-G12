@@ -9,6 +9,7 @@
 #include <timeLib.h>
 #include <lib.h>
 #include <color.h>
+#include <sem.h>
 
 // Estructura para acceder a los registros guardados por pushState
 // El orden tiene que coincidir con el de la macro pushState en interrupts.asm
@@ -34,8 +35,6 @@ typedef struct {
     uint64_t rsp;
     uint64_t ss;
 } Registers_t;
-
-
 
 void syscallDispatcher(Registers_t *regs);
 void loadSnapshot(Registers_t *regs);

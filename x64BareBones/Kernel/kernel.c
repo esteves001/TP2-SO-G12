@@ -14,7 +14,7 @@
 // Si descomento esto, en vez de levantar el userland normal arranco
 // dos procesos de juguete (test_a y test_b) para ver si el context
 // switch realmente conmuta. Util para debug del scheduler.
-// #define SCHED_TEST
+//#define SCHED_TEST
 
 // Si descomento esto, lanzo un proceso de prueba que recibe args y los
 // dibuja en pantalla para verificar que argc/argv llegan via RDI/RSI.
@@ -77,7 +77,7 @@ __attribute__((unused)) static void test_a() {
 	while(1) {
 		drawChar('A', 0xFF0000, x, 100);   // linea y=100, rojo
 		x = (x + 10) % 800;
-		for(volatile int i = 0; i < 10000000; i++); // delay choto para que no se llene todo en un tick
+		for(volatile int i = 0; i < 1000000; i++); // delay para ver intercalado mas claro
 	}
 }
 
@@ -86,7 +86,7 @@ __attribute__((unused)) static void test_b() {
 	while(1) {
 		drawChar('B', 0x00FF00, x, 150);   // linea y=150, verde
 		x = (x + 10) % 800;
-		for(volatile int i = 0; i < 10000000; i++);
+		for(volatile int i = 0; i < 1000000; i++);
 	}
 }
 
