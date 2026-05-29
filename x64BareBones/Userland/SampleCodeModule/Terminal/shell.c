@@ -1,7 +1,7 @@
 #include <shell.h>
 
 #define BUFFER 500
-#define COMMAND_SIZE 14
+#define COMMAND_SIZE 15
 #define SPECIAL_KEY_MAX_VALUE 5
 
 char* commands_str[] = {
@@ -218,5 +218,44 @@ void test_prio_cmd() {
 }
 
 void test_sync_cmd() {
-    return;
+    char input_buffer[BUFFER];
+
+    printf("\n--- Test de Sincronizacion ---\n");
+    
+    printf("Ingrese la cantidad de pares de procesos (ej: 10): ");
+    readInput(input_buffer);
+    printf("\n"); 
+    char pairs_str[16];
+    int i = 0;
+    while(input_buffer[i] != '\0' && i < 15) {
+        pairs_str[i] = input_buffer[i];
+        i++;
+    }
+    pairs_str[i] = '\0';
+
+    printf("Ingrese la cantidad de incrementos/decrementos por proceso (ej: 100000): ");
+    readInput(input_buffer);
+    printf("\n");
+    char loops_str[16];
+    i = 0;
+    while(input_buffer[i] != '\0' && i < 15) {
+        loops_str[i] = input_buffer[i];
+        i++;
+    }
+    loops_str[i] = '\0';
+
+    printf("¿Usar semaforos? (1 para SI, 0 para NO): ");
+    readInput(input_buffer);
+    printf("\n");
+    char use_sem_str[2];
+    use_sem_str[0] = input_buffer[0]; 
+    use_sem_str[1] = '\0';
+
+    char *argv[] = {pairs_str, loops_str, use_sem_str};
+
+    printf("Iniciando test... (Por favor espere, puede demorar unos segundos)\n");
+    
+    test_sync_main(3, argv);
+    
+    printf("--- Test finalizado ---\n");
 }

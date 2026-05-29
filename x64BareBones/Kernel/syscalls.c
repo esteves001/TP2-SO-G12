@@ -58,7 +58,14 @@ uint64_t sys_write(uint8_t fd, const char *str, uint64_t count)
             switch (str[i]) 
             {
             case '\n':
+                x_coord = 0; 
                 y_coord += height + FONT_CHAR_GAP;
+                
+                if (y_coord + height > getScreenHeight()) {
+                    scrollScreen();
+                    y_coord -= (height + FONT_CHAR_GAP);
+                }
+                break;
         
             case '\r':
                 x_coord = 0;
@@ -70,11 +77,15 @@ uint64_t sys_write(uint8_t fd, const char *str, uint64_t count)
                 {
                     x_coord = x_coord % getScreenWidth();
                     y_coord += height + FONT_CHAR_GAP;
+                    
+                    if (y_coord + height > getScreenHeight()) {
+                        scrollScreen();
+                        y_coord -= (height + FONT_CHAR_GAP);
+                    }
                 }
                 break;
 
             case '\b':
-
                 if (x_coord > width + FONT_CHAR_GAP) 
                 {
                     x_coord -= (width + FONT_CHAR_GAP);
@@ -91,24 +102,25 @@ uint64_t sys_write(uint8_t fd, const char *str, uint64_t count)
                         x_coord = 0;
                     }
                 }
-
-                // TODO: Esto en vez del un espacio tendria que ser un caracter con todo
-                // el bit map en 1. Tambien sirve para el cursor
                 drawRectangle(width, height, NEGRO, x_coord, y_coord);
                 break;
             }
         } 
-
-        // TODO: Aca se podria optimizar con getRemainingScreenWidth
-        else if (isValidScreenPrint(x_coord, y_coord, width, height)) 
-        {
-            drawChar(str[i], BLANCO, x_coord, y_coord);
-            x_coord += width + FONT_CHAR_GAP;
-        } 
         else 
         {
-            x_coord = 0;
-            y_coord += height + FONT_CHAR_GAP;
+            if (x_coord + width > getScreenWidth()) 
+            {
+                x_coord = 0;
+                y_coord += height + FONT_CHAR_GAP;
+                
+                if (y_coord + height > getScreenHeight()) {
+                    scrollScreen();
+                    y_coord -= (height + FONT_CHAR_GAP);
+                }
+            }
+            
+            drawChar(str[i], BLANCO, x_coord, y_coord);
+            x_coord += width + FONT_CHAR_GAP;
         }
     }
 

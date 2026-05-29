@@ -131,9 +131,18 @@ void drawChar(char c, uint32_t color, uint64_t x, uint64_t y) {
 void drawString(const char* s, uint32_t hexColor, uint64_t x, uint64_t y) {
     int w = getWidth(), h = getHeight();
     for (const char *p = s; *p; p++) {
+        if (*p == '\n') {
+            x = 0;
+            y += h + FONT_CHAR_GAP;
+            continue;
+        }
         if (!isValidScreenPrint(x, y, w, h)) {
-            x = 0; y += h + FONT_CHAR_GAP;
-            if (!isValidScreenPrint(x, y, w, h)) break;
+            x = 0; 
+            y += h + FONT_CHAR_GAP; 
+        }
+        if (!isValidScreenCoordinate(x, y + h - 1)) { 
+            scrollScreen(); 
+            y -= (h + FONT_CHAR_GAP);
         }
         drawChar(*p, hexColor, x, y);
         x += w + FONT_CHAR_GAP;
@@ -235,4 +244,21 @@ void drawBin(uint64_t value, uint32_t hexColor, uint64_t x, uint64_t y)
 void clearScreen(void)
 {
 	drawRectangle(getScreenWidth(), getScreenHeight(), 0x00000000, 0, 0);
+}
+
+void scrollScreen() {
+    uint16_t char_height = getHeight() + FONT_CHAR_GAP; 
+    uint16_t screen_w = getScreenWidth();
+    uint16_t screen_h = getScreenHeight();
+    
+    uint8_t bytes_per_pixel = VBE_mode_info->bpp / 8;
+    uint32_t bytes_per_line = VBE_mode_info->pitch; 
+    
+    uint32_t bytes_per_text_row = bytes_per_line * char_height;
+    
+    uint32_t total_bytes_to_move = (screen_h * bytes_per_line) - bytes_per_text_row;
+
+    uint8_t * framebuffer = (uint8_t *) (uintptr_t) VBE_mode_info->framebuffer;
+    memcpy(framebuffer, framebuffer + bytes_per_text_row, total_bytes_to_move);
+    drawRectangle(screen_w, char_height, 0x000000, 0, screen_h - char_height);
 }

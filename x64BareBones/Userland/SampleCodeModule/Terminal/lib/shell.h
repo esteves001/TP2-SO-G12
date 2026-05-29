@@ -11,7 +11,7 @@
 #include <syscallLib.h>
 #include <tests.h>
 
-typedef enum {HELP = 0, EXC_1, EXC_2, PONGISGOLF, ZOOM_IN, ZOOM_OUT, CLEAR, DATE, REGISTERS, BUSY_WAIT, BUSY_WAIT_KERNEL, MEM, PS, TEST_PRIO, EXIT} command_id;
+typedef enum {HELP = 0, EXC_1, EXC_2, PONGISGOLF, ZOOM_IN, ZOOM_OUT, CLEAR, DATE, REGISTERS, BUSY_WAIT, BUSY_WAIT_KERNEL, MEM, PS, TEST_PRIO,TEST_SYNC, EXIT} command_id;
 
 void startShell();
 void readInput();

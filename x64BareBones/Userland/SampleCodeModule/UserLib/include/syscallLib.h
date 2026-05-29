@@ -81,4 +81,11 @@ extern void sys_mem_stats(mem_info_t * out);
 
 extern void opCodeException();
 
+// Semaforos
+extern int sys_create_sem(int sem_id, int status, const char * sem_name);
+extern int sys_open_sem(int sem_id);
+extern void sys_sem_wait(int sem_id);
+extern void sys_sem_post(int sem_id);
+extern void sys_delete_sem(int sem_id);
+
 #endif
