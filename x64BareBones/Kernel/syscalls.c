@@ -369,32 +369,24 @@ void syscallDispatcher(Registers_t *regs)
             break;
 
         case 0x32:
-            // create_sem(sem_id, initial_value, name)
-            // arg1=sem_id, arg2=initial_value, arg3=name
-            // devuelve 1 si ok, 0 si fallo
             regs->rax = (uint64_t)create_sem((int)arg1, (int)arg2, (const char *)arg3);
             break;
  
         case 0x33:
-            // open_sem(sem_id): adjunta el proceso actual al sem existente
-            // devuelve 1 si ok, 0 si no existe
             regs->rax = (uint64_t)open_sem((int)arg1);
             break;
  
         case 0x34:
-            // sem_wait(sem_id): P / down — bloquea si status <= 0
             sem_wait((int)arg1);
             regs->rax = 0;
             break;
  
         case 0x35:
-            // sem_post(sem_id): V / up — despierta un bloqueado si hay
             sem_post((int)arg1);
             regs->rax = 0;
             break;
  
         case 0x36:
-            // delete_sem(sem_id): destruye el semaforo
             delete_sem((int)arg1);
             regs->rax = 0;
             break;

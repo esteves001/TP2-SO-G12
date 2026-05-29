@@ -7,7 +7,7 @@
 char* commands_str[] = {
     "help", "exception 1", "exception 2",
     "zoom in", "zoom out",
-     "clear", "date", "registers", "busywait", "busywaitkernel", "mem", "ps", "test_prio", "exit"
+     "clear", "date", "registers", "busywait", "busywaitkernel", "mem", "ps", "test_prio", "test_sync", "exit"
     };
 
 
@@ -16,7 +16,7 @@ static ShellCommand commands[] = {
     help, exception_1, exception_2,
     zoom_in, zoom_out,
     clear_screen, printDateTime, getRegisters,
-    busy_wait, busy_wait_kernel, mem_cmd, ps_cmd, test_prio_cmd, exitShell};
+    busy_wait, busy_wait_kernel, mem_cmd, ps_cmd, test_prio_cmd, test_sync_cmd, exitShell};
 
 char *registers[] = {
     " RAX: ", " RBX: ", " RCX: ",
@@ -215,4 +215,8 @@ void test_prio_cmd() {
     test_prio_main(0, NULL);
     printf("test_prio lanzado: 3 workers (A rojo prio1, B verde prio3, C azul prio5).\n");
     printf("C deberia llegar al '*' primero.\n");
+}
+
+void test_sync_cmd() {
+    return;
 }

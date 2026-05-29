@@ -6,7 +6,7 @@
 sem_t sem_arr[MAX_SEM] = {0};
 //en todo el codigo uso sem_id-1 porque los ids van de 1 a 16 por tanto en el arreglo van de 0 a 15
 
-static int valid_sem_id(int sem_id) { // algo hay que validar seguramente no se que es aun, por lo pronto puse que sea un sem_id valido
+int valid_sem_id(int sem_id) { // algo hay que validar seguramente no se que es aun, por lo pronto puse que sea un sem_id valido
     return sem_id >= 1 && sem_id <= 16;
 }
 
@@ -22,8 +22,6 @@ void sem_post(int sem_id) {
         }
         sem_arr[sem_id-1].blocked_pids[--sem_arr[sem_id-1].blocked_pids_counter] = 0;
         unblock_process(to_unblock_pid);
-        release(&sem_arr[sem_id-1].lock);
-        return;  
     }
     release(&sem_arr[sem_id-1].lock); 
 }
@@ -35,7 +33,6 @@ void sem_wait(int sem_id) {
     sem_arr[sem_id-1].status--;
     if(sem_arr[sem_id-1].status < 0) {
         if(sem_arr[sem_id-1].blocked_pids_counter >= MAX_BLOCKED_PIDS) {
-            // cola llena: no podemos bloquear, revertimos
             sem_arr[sem_id-1].status++;
             release(&sem_arr[sem_id-1].lock);
             return;

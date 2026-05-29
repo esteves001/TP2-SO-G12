@@ -32,5 +32,6 @@ void busy_wait_kernel();
 void mem_cmd();
 void ps_cmd();
 void test_prio_cmd();
+void test_sync_cmd();
 
 #endif

@@ -22,7 +22,7 @@ extern sem_t sem_arr[MAX_SEM]; //array estatico de maximo 16 semaforos creados
 
 void sem_post(int sem_id);
 void sem_wait(int sem_id);
-int create_sem(int sem_id, int status, const char * sem_name); //devuelve int porque automaticamente se agregaria al arreglo queda guardado ahi 1 si es valida la creacion 0 sino
+int create_sem(int sem_id, int status, const char * sem_name); //devuelve 1 si es valida la creacion 0 sino
 void delete_sem(int sem_id);
 int open_sem(int sem_id);
 

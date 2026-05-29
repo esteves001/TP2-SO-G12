@@ -34,6 +34,12 @@ GLOBAL sys_zoomOut
 
 GLOBAL sys_sleepMilli
 
+GLOBAL sys_create_sem
+GLOBAL sys_open_sem
+GLOBAL sys_sem_wait
+GLOBAL sys_sem_post
+GLOBAL sys_delete_sem
+
 GLOBAL opCodeException
 
 section .text
@@ -91,6 +97,12 @@ sys_nice:               syscall 0x30
 
 ; Procesos (continuacion)
 sys_create_process:     syscall 0x31
+; Semaforos
+sys_create_sem:         syscall 0x32
+sys_open_sem:           syscall 0x33
+sys_sem_wait:           syscall 0x34
+sys_sem_post:           syscall 0x35
+sys_delete_sem:         syscall 0x36
 
 ; Tiempo
 sys_sleepMilli:         syscall 0x40
