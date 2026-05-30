@@ -222,7 +222,7 @@ void test_sync_cmd() {
 
     printf("\n--- Test de Sincronizacion ---\n");
     
-    printf("Ingrese la cantidad de pares de procesos (ej: 10): ");
+    printf("Ingrese la cantidad de pares de procesos (max 7): ");
     readInput(input_buffer);
     printf("\n"); 
     char pairs_str[16];
