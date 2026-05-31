@@ -114,6 +114,7 @@ void *alloc_memory(uint64_t bytes) {
     return (void *)((uint8_t *)block + sizeof(uint64_t)); 
 }
 
+
 void free_memory(void *ptr) {
     if (ptr == NULL) return;
 

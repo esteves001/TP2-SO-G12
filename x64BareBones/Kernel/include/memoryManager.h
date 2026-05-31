@@ -27,4 +27,5 @@ typedef struct {
 // Llena out con el estado actual del manager. La usa la syscall 0x29.
 void get_mem_stats(mem_info_t * out);
 
+
 #endif

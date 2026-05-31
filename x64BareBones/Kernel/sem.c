@@ -26,6 +26,7 @@ void sem_post(int sem_id) {
     release(&sem_arr[sem_id-1].lock); 
 }
 
+
 void sem_wait(int sem_id) {
     if(!valid_sem_id(sem_id)) return;
 

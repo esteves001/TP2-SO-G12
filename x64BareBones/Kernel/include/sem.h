@@ -9,6 +9,7 @@
 #define MAX_BLOCKED_PIDS 16  // largo maximo del nombre de sem(incluyendo el \0)
 
 
+
 typedef struct{
     int id;     //id unico del sem no se si es necesario comienza en 1 hasta el 16
     int status;    // valor del semaforo -1, 0 ,1 ,2
