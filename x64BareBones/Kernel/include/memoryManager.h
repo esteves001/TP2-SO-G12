@@ -10,7 +10,7 @@
 void initialize_memory_manager(void);
 
 // Reserva una página de 4 KiB y devuelve el puntero al inicio de la misma
-void* allocate_page(uint64_t bytes); // para poder testear pasa a btyes
+void* allocate_page(); // para poder testear pasa a btyes
 
 // Libera una página previamente asignada
 void free_page(void* address);
