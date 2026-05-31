@@ -60,6 +60,8 @@ void initialize_memory_manager(void) {
 // 1) Encontramos una posicion libre (0) en el bitmap
 // 2) Pasamos dicha posicion a (1)
 // 3) Devolvemos el puntero correspondiente al espacio en memoria que acabamos de reservar 
+// Cambio el .h de void a bytes para poder hacer el test y el otro mm
+/*
 void* allocate_page(void) {
     // Iteramos por los marcos de pagina
     for (uint64_t i = first_free_page; i < total_pages; i++) {
@@ -73,7 +75,7 @@ void* allocate_page(void) {
         }
     }
     return NULL; // Memoria llena
-}
+}*/
 
 // Idea
 // 1) Encontrar el marco de pagina correspondiente al puntero
