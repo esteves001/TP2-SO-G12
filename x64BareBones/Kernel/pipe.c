@@ -1,89 +1,98 @@
 #include "pipe.h"
 #include "process.h"
 #include "memoryManager.h"
-#include "interrupts.h"
+#include "sem.h"
 
 
-pipe_t * pipe_create() { 
-    // En este caso al pipe se le da el espacio de una pagina, puede ser que se desperdicie bastante memoria
+pipe_t * pipe_create() {
+    // El pipe vive en una pagina. Puede que se desperdicie memoria, pero alcanza.
     void * page = allocate_page();
     if(page == NULL) return NULL;
-    
-    pipe_t * new_pipe = (pipe_t *)page; // Es importante el casteo para que la pagina sea vista como un pipe
 
-    new_pipe->read_pos = 0;
-    new_pipe->write_pos = 0;
-    new_pipe->count = 0;
-    new_pipe->active = 1;
-    new_pipe->waiting_pid = 0;
-    
-    return new_pipe;
+    pipe_t * p = (pipe_t *) page; // veo la pagina como un pipe
+    p->read_pos  = 0;
+    p->write_pos = 0;
+    p->active    = 1;
+    sem_init(&p->mutex, 1);                // mutex arranca libre
+    sem_init(&p->empty, PIPE_BUFFER_SIZE); // todo el buffer esta vacio
+    sem_init(&p->full, 0);                 // todavia no hay datos
+
+    return p;
 }
 
-int pipe_write(pipe_t * pipe, char * buf, int n) {
-    if(pipe == NULL || pipe->active == 0) return 0; // No escribio nada
+int pipe_write(pipe_t * p, char * buf, int n) {
+    if(p == NULL || p->active == 0) return 0;
 
-    // 1. Si está lleno, me bloqueo esperando que el lector libere espacio
-    while(pipe->count == PIPE_BUFFER_SIZE) {
-        pipe->waiting_pid = sys_get_pid();
-        block_process(pipe->waiting_pid);
-        force_schedule();
+    int i;
+    for(i = 0; i < n; i++) {
+        sem_wait_on(&p->empty);      // espero un espacio libre (bloquea si esta lleno)
+        if(p->active == 0) break;    // me cerraron el pipe mientras esperaba
+        sem_wait_on(&p->mutex);
+        p->buffer[p->write_pos] = buf[i];
+        p->write_pos = (p->write_pos + 1) % PIPE_BUFFER_SIZE;
+        sem_post_on(&p->mutex);
+        sem_post_on(&p->full);       // aviso que hay un dato nuevo
     }
 
-    // 2. Escribo todo lo que puedo (hasta 'n' o hasta llenar el pipe)
-    int written = 0;
-    for(int i = 0 ; i < n && pipe->count < PIPE_BUFFER_SIZE ;  i++) {
-        pipe->buffer[pipe->write_pos] = buf[i];
-        pipe->write_pos = (pipe->write_pos + 1) % PIPE_BUFFER_SIZE; 
-        pipe->count++;
-        written++;
-    }
-
-    // 3. Como acabo de meter datos, el pipe ya no está vacío.
-    // Si el lector estaba atrapado esperando leer, lo despierto.
-    if(pipe->waiting_pid != 0) {
-        unblock_process(pipe->waiting_pid);
-        pipe->waiting_pid = 0;
-    }
-
-    return written;
+    return i;
 }
 
-int pipe_read(pipe_t * pipe, char * buf, int n) {
-    if(pipe == NULL || pipe->active == 0) return 0; // No leo nada
+int pipe_read(pipe_t * p, char * buf, int n) {
+    if(p == NULL || p->active == 0) return 0;
 
-    // 1. Si está vacío, me bloqueo esperando que el escritor ponga algo
-    while(pipe->count == 0) {
-        pipe->waiting_pid = sys_get_pid();
-        block_process(pipe->waiting_pid);
-        force_schedule(); 
+    int i;
+    for(i = 0; i < n; i++) {
+        sem_wait_on(&p->full);       // espero un dato (bloquea si esta vacio)
+        if(p->active == 0) break;    // me cerraron el pipe mientras esperaba
+        sem_wait_on(&p->mutex);
+        buf[i] = p->buffer[p->read_pos];
+        p->read_pos = (p->read_pos + 1) % PIPE_BUFFER_SIZE;
+        sem_post_on(&p->mutex);
+        sem_post_on(&p->empty);      // libere un espacio
     }
 
-    // 2. Leo todo lo que puedo (hasta 'n' o hasta vaciar el pipe)
-    int read = 0;
-    for(int i = 0 ; i < n && pipe->count > 0; i++) {
-        buf[i] = pipe->buffer[pipe->read_pos];
-        pipe->read_pos = (pipe->read_pos + 1) % PIPE_BUFFER_SIZE;
-        pipe->count--;
-        read++;
-    }
-
-    // 3. Como acabo de sacar datos, hay espacio nuevo. 
-    // Si el escritor estaba atrapado porque el pipe estaba lleno, lo despierto.
-    if(pipe->waiting_pid != 0) {
-        unblock_process(pipe->waiting_pid);
-        pipe->waiting_pid = 0;
-    }
-
-    return read;
+    return i;
 }
 
-void pipe_close(pipe_t* pipe) {
-    if(pipe == NULL) return;
-    pipe->active = 0;
-    if(pipe->waiting_pid != 0) {
-        unblock_process(pipe->waiting_pid);
-        pipe->waiting_pid = 0;
-    }
-    free_page(pipe);
+void pipe_close(pipe_t * p) {
+    if(p == NULL) return;
+    p->active = 0;
+    // despierto a cualquiera que estuviera bloqueado para que vea active==0 y salga
+    while(p->full.blocked_pids_counter > 0)  sem_post_on(&p->full);
+    while(p->empty.blocked_pids_counter > 0) sem_post_on(&p->empty);
+    free_page(p);
+}
+
+// --- Capa por ID: pipes compartidos por un id acordado, como los semaforos ---
+
+static pipe_t * pipe_table[MAX_PIPES] = {0}; // ids 1..MAX_PIPES, indice id-1
+
+int pipe_create_id(int id) {
+    if(id < 1 || id > MAX_PIPES) return -1;
+    if(pipe_table[id-1] != NULL) return -1;   // ya hay uno con ese id
+    pipe_t * p = pipe_create();
+    if(p == NULL) return -1;
+    pipe_table[id-1] = p;
+    return id;
+}
+
+int pipe_open_id(int id) {
+    if(id < 1 || id > MAX_PIPES || pipe_table[id-1] == NULL) return -1;
+    return id;                                 // existe, lo podes usar con ese id
+}
+
+int pipe_read_id(int id, char * buf, int n) {
+    if(id < 1 || id > MAX_PIPES || pipe_table[id-1] == NULL) return -1;
+    return pipe_read(pipe_table[id-1], buf, n);
+}
+
+int pipe_write_id(int id, char * buf, int n) {
+    if(id < 1 || id > MAX_PIPES || pipe_table[id-1] == NULL) return -1;
+    return pipe_write(pipe_table[id-1], buf, n);
+}
+
+void pipe_close_id(int id) {
+    if(id < 1 || id > MAX_PIPES || pipe_table[id-1] == NULL) return;
+    pipe_close(pipe_table[id-1]);
+    pipe_table[id-1] = NULL;
 }

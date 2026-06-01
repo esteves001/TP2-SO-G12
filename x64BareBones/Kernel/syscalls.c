@@ -2,6 +2,7 @@
 #include "memoryManager.h"
 #include "process.h"
 #include "interrupts.h"  // para force_schedule()
+#include "pipe.h"
 
 #define STDIN  0
 #define STDOUT 1
@@ -400,6 +401,27 @@ void syscallDispatcher(Registers_t *regs)
  
         case 0x36:
             delete_sem((int)arg1);
+            regs->rax = 0;
+            break;
+
+        case 0x37: // create_pipe(id)
+            regs->rax = (uint64_t)(int64_t)pipe_create_id((int)arg1);
+            break;
+
+        case 0x38: // open_pipe(id)
+            regs->rax = (uint64_t)(int64_t)pipe_open_id((int)arg1);
+            break;
+
+        case 0x39: // pipe_read(id, buf, n)
+            regs->rax = (uint64_t)(int64_t)pipe_read_id((int)arg1, (char *)arg2, (int)arg3);
+            break;
+
+        case 0x3A: // pipe_write(id, buf, n)
+            regs->rax = (uint64_t)(int64_t)pipe_write_id((int)arg1, (char *)arg2, (int)arg3);
+            break;
+
+        case 0x3B: // close_pipe(id)
+            pipe_close_id((int)arg1);
             regs->rax = 0;
             break;
 
