@@ -3,6 +3,7 @@
 #include "lib.h"
 #include "interrupts.h" // para _hlt() en idle_process
 #include "timeLib.h"    // para timer_handler() en schedule_tick
+#include "pipe.h"
 
 // definiciones de los globales declarados extern en process.h
 // arrancan en NULL/0 porque al boot todavia no hay ningun proceso
@@ -213,7 +214,10 @@ void block_process(uint64_t pid) {
 }
 
 void unblock_process(uint64_t pid) {
-    if(pid > 0 && process_table[pid-1] != NULL) process_table[pid-1]->state = READY;
+    // Si esta dormido lo despierto 
+    if(pid > 0 && process_table[pid-1] != NULL && process_table[pid-1]->state == BLOCKED) {
+        process_table[pid-1]->state = READY;
+    }
 }
 
 // cambio la prio. devuelve -1 si pid invalido o prio fuera de [MIN, MAX].
@@ -271,69 +275,6 @@ int ps_snapshot(process_info_t * buf, int max) {
     return written;
 }
 
-pipe_t * pipe_create() { 
-    // En este caso al pipe se le da el espacio de una pagina, puede ser que se desperdicie bastante memoria
-    void * page = allocate_page();
-    if(page == NULL) return NULL;
-    
-    pipe_t * new_pipe = (pipe_t *)page; // Es importante el casteo para que la pagina sea vista como un pipe
 
-    new_pipe->read_pos = 0;
-    new_pipe->write_pos = 0;
-    new_pipe->count = 0;
-    new_pipe->active = 1;
-    new_pipe->waiting_pid = 0;
-    
-    return new_pipe;
-}
 
-int pipe_write(pipe_t * pipe, char * buf, int n) {
-    if(pipe == NULL || pipe->active == 0) return 0; // No escribio nada
-
-    int written = 0;
-
-    for(int i = 0 ; i < n && pipe->count < PIPE_BUFFER_SIZE ;  i++) {
-        pipe->buffer[pipe->write_pos] = buf[i];
-        pipe->write_pos = (pipe->write_pos + 1) % PIPE_BUFFER_SIZE; //esto es para que escriba de manera circular, no se si esta bien
-        pipe->count++;
-        written++;
-    }
-
-    if(pipe->waiting_pid != 0) {
-        unblock_process(pipe->waiting_pid);
-        pipe->waiting_pid = 0;
-    }
-
-    return written;
-}
-
-int pipe_read(pipe_t * pipe, char * buf, int n) {
-    if(pipe == NULL || pipe->active == 0) return 0; // No leo nada
-
-    int read = 0;
-
-    for(int i = 0 ; i < n && pipe->count > 0; i++) {
-        buf[i] = pipe->buffer[pipe->read_pos];
-        pipe->read_pos = (pipe->read_pos + 1) % PIPE_BUFFER_SIZE;
-        pipe->count--;
-        read++;
-    }
-
-    if(pipe->waiting_pid != 0) {
-        unblock_process(pipe->waiting_pid);
-        pipe->waiting_pid = 0;
-    }
-
-    return read;
-}
-
-void pipe_close(pipe_t* pipe) {
-    if(pipe == NULL) return;
-    pipe->active = 0;
-    if(pipe->waiting_pid != 0) {
-        unblock_process(pipe->waiting_pid);
-        pipe->waiting_pid = 0;
-    }
-    free_page(pipe);
-}
 

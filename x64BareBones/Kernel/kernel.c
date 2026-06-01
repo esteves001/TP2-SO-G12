@@ -10,6 +10,7 @@
 #include <process.h>
 #include <memoryManager.h>  // initialize_memory_manager
 #include <interrupts.h>     // para force_schedule() en test_prio
+#include "sem.h"
 
 // Si descomento esto, en vez de levantar el userland normal arranco
 // dos procesos de juguete (test_a y test_b) para ver si el context
@@ -144,6 +145,9 @@ int main()
 {
 	load_idt();  // deja interrupciones apagadas, las prende el iretq de start_first_process
 	initialize_memory_manager();  // sin esto, allocate_page devuelve NULL y no se crea ningun proceso
+
+	// Inicializamos el semáforo del teclado (ID 16, arranca en 0)
+    //create_sem(16, 0, "teclado");
 
 	create_idle_process();                                    // proceso 1: idle
 

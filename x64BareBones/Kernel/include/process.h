@@ -5,7 +5,6 @@
 #include <stddef.h>
 
 #define MAX_PROCESSES 16
-#define PIPE_BUFFER_SIZE 256
 #define MAX_PROCESS_NAME 32  // largo maximo del nombre de un proceso (incluyendo el \0)
  
 // rango de prioridades. el numero es cuantos ticks corre el proceso por turno.
@@ -19,15 +18,7 @@
  
 typedef enum { READY = 0, RUNNING, BLOCKED, KILLED } process_state;
 
-typedef struct {
-    char buffer[PIPE_BUFFER_SIZE];  
-    int read_pos;                   // donde lee p2, avanza modulo PIPE_BUFFER_SIZE
-    int write_pos;                  // donde escribe p1, avanza modulo PIPE_BUFFER_SIZE
-    int count;                      // bytes disponibles para leer, 0 = vacio, PIPE_BUFFER_SIZE = lleno
-    int active;                     // 1 si el pipe existe, 0 si fue cerrado
-    uint64_t waiting_pid;           // pid del proceso bloqueado esperando datos, 0 si nadie espera
-} pipe_t;
-
+typedef struct pipe_struct pipe_t;
 typedef struct {
     uint64_t pid;       // Pid del proceso
     uint64_t rsp;       // Puntero al stack para el scheduler
@@ -95,10 +86,5 @@ uint64_t get_pid_count();         // Cuantos procesos hay corriendo, util para d
 int ps_snapshot(process_info_t * buf, int max);
 
 
-// Funcionalidades de pipes
-pipe_t * pipe_create();                          // aloca e inicializa el pipe
-int pipe_write(pipe_t * pipe, char * buf, int n); // escribe n bytes al pipe
-int pipe_read(pipe_t * pipe, char * buf, int n);  // lee n bytes del pipe
-void pipe_close(pipe_t * pipe);                  // cierra y libera el pipe
 
 #endif  

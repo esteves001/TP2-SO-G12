@@ -2,6 +2,7 @@
 
 #include <time.h>
 #include <keyboardDriver.h>
+#include "sem.h"
 
 static void int_21();
 
@@ -23,4 +24,5 @@ void irqDispatcher(uint64_t irq) {
 
 void int_21(){
 	keyboard_handler();
+	//sem_post(16);
 }
