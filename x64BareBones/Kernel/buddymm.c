@@ -80,64 +80,50 @@ void initialize_memory_manager(void) {
     total_manageable_bytes = free_bytes;
 }
 
-void *alloc_memory(uint64_t bytes) {
-    if (bytes == 0) return NULL;
-
-    //bytes pedidos + 8 bytes de metadatos para guardar el orden 
-    uint64_t needed = bytes + sizeof(uint64_t); 
-
-    int order = 0; //calculo el orden de bloque segun los bytes que me pidan
-    while (order <= MAX_ORDER && (PAGE_SIZE * (1ULL << order)) < needed)
-        order++;
-
+// saca un bloque del orden pedido. si no hay, parte uno mas grande.
+// devuelve el bloque crudo (sin tocar metadata) o NULL si no entra.
+static block_node_t *get_block(int order) {
     if (order > MAX_ORDER) return NULL;
 
-    int found = order; // una vez tengo el orden debo encontrar una lista que tenga esa mem disponible guardo el orden de found
+    int found = order; // busco la primera lista de orden >= al pedido que tenga algo
     while (found <= MAX_ORDER && free_lists[found] == NULL)
         found++;
 
     if (found > MAX_ORDER) return NULL;
 
-    block_node_t *block = free_lists[found]; 
-    list_remove(&free_lists[found], block); //retiro el bloque de la lista y del arreglo para poder asignarlo
+    block_node_t *block = free_lists[found];
+    list_remove(&free_lists[found], block); //retiro el bloque de la lista para asignarlo
 
-    while (found > order) { //while para particionar el bloque
+    while (found > order) { //particiono hasta llegar al orden que quiero
         found--;
         uint64_t      half  = PAGE_SIZE * (1ULL << found);
         block_node_t *buddy = (block_node_t *)((uint8_t *)block + half);
         list_push(&free_lists[found], buddy);
     }
 
-    free_bytes -= PAGE_SIZE * (1ULL << order); 
-    *((uint64_t *)block) = (uint64_t)order; //orden de bloque a retornar
-
-    return (void *)((uint8_t *)block + sizeof(uint64_t)); 
+    free_bytes -= PAGE_SIZE * (1ULL << order);
+    return block;
 }
 
-
-void free_memory(void *ptr) {
-    if (ptr == NULL) return;
-
-    uint8_t  *actual = (uint8_t *)ptr - sizeof(uint64_t); 
-    uint64_t  order  = *((uint64_t *)actual); // obtengo el orden 
-
-    if (order > MAX_ORDER) return;   
+// libera un bloque de orden conocido y lo fusiona con su buddy mientras pueda
+static void put_block(uint8_t *actual, uint64_t order) {
+    if (order > MAX_ORDER) return;
 
     free_bytes += PAGE_SIZE * (1ULL << order); //agrego el tamanio del bloque liberado
 
-    // fusiono con el bloque con su buddy subo orden mientras pueda
+    // fusiono el bloque con su buddy, subo orden mientras pueda
     while (order < MAX_ORDER) {
         uint64_t      block_size = PAGE_SIZE * (1ULL << order);
         uint64_t      relative   = (uint64_t)actual - (uint64_t)buddy_base;
-        uint64_t      buddy_rel  = relative ^ block_size; // xor me permite saber donde esta el otro hermano del bloque a liberar para que si puedo los una
+        uint64_t      buddy_rel  = relative ^ block_size; // xor me permite saber donde esta el hermano del bloque para unirlos
         block_node_t *buddy      = (block_node_t *)(buddy_base + buddy_rel);
 
         if (!list_contains(free_lists[order], buddy))
-            break;
+            break; // el buddy no esta entero libre, no puedo fusionar
 
         list_remove(&free_lists[order], buddy);
 
-        if ((uint8_t *)buddy < actual)
+        if ((uint8_t *)buddy < actual) // el bloque fusionado arranca en el menor de los dos
             actual = (uint8_t *)buddy;
 
         order++;
@@ -146,12 +132,42 @@ void free_memory(void *ptr) {
     list_push(&free_lists[order], (block_node_t *)actual);
 }
 
+void *alloc_memory(uint64_t bytes) {
+    if (bytes == 0) return NULL;
+
+    //bytes pedidos + 8 bytes de metadatos para guardar el orden
+    uint64_t needed = bytes + sizeof(uint64_t);
+
+    int order = 0; //calculo el orden de bloque segun los bytes que me pidan
+    while (order <= MAX_ORDER && (PAGE_SIZE * (1ULL << order)) < needed)
+        order++;
+
+    block_node_t *block = get_block(order);
+    if (block == NULL) return NULL;
+
+    *((uint64_t *)block) = (uint64_t)order; //orden de bloque a retornar
+    return (void *)((uint8_t *)block + sizeof(uint64_t));
+}
+
+
+void free_memory(void *ptr) {
+    if (ptr == NULL) return;
+
+    uint8_t  *actual = (uint8_t *)ptr - sizeof(uint64_t);
+    uint64_t  order  = *((uint64_t *)actual); // recupero el orden de la metadata
+
+    put_block(actual, order);
+}
+
+// una pagina es un bloque de orden 0 entero. NO uso metadata: el orden ya lo se.
+// asi allocate_page devuelve 4096 bytes alineados, igual que el bitmap.
 void *allocate_page(void) {
-    return alloc_memory(PAGE_SIZE - sizeof(uint64_t));
+    return (void *) get_block(0);
 }
 
 void free_page(void *ptr) {
-    free_memory(ptr);
+    if (ptr == NULL) return;
+    put_block((uint8_t *)ptr, 0); //se que es orden 0
 }
 
 void get_mem_stats(mem_info_t *out) {

@@ -88,4 +88,11 @@ extern void sys_sem_wait(int sem_id);
 extern void sys_sem_post(int sem_id);
 extern void sys_delete_sem(int sem_id);
 
+// Pipes (ID acordado entre procesos no relacionados, como los semaforos)
+extern int  sys_create_pipe(int id);                  // 0x37 - crea, -1 si ya existe/invalido
+extern int  sys_open_pipe(int id);                     // 0x38 - valida que exista
+extern int  sys_pipe_read(int id, char * buf, int n);  // 0x39 - lee (bloqueante)
+extern int  sys_pipe_write(int id, char * buf, int n); // 0x3A - escribe (bloqueante)
+extern void sys_close_pipe(int id);                    // 0x3B - cierra
+
 #endif

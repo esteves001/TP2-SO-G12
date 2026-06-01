@@ -1,13 +1,13 @@
 #include <shell.h>
 
 #define BUFFER 500
-#define COMMAND_SIZE 15
+#define COMMAND_SIZE 16
 #define SPECIAL_KEY_MAX_VALUE 5
 
 char* commands_str[] = {
     "help", "exception 1", "exception 2",
     "zoom in", "zoom out",
-     "clear", "date", "registers", "busywait", "busywaitkernel", "mem", "ps", "test_prio", "test_sync", "exit"
+     "clear", "date", "registers", "busywait", "busywaitkernel", "mem", "ps", "test_prio", "test_sync", "test_pipe", "exit"
     };
 
 
@@ -16,7 +16,7 @@ static ShellCommand commands[] = {
     help, exception_1, exception_2,
     zoom_in, zoom_out,
     clear_screen, printDateTime, getRegisters,
-    busy_wait, busy_wait_kernel, mem_cmd, ps_cmd, test_prio_cmd, test_sync_cmd, exitShell};
+    busy_wait, busy_wait_kernel, mem_cmd, ps_cmd, test_prio_cmd, test_sync_cmd, test_pipe_cmd, exitShell};
 
 char *registers[] = {
     " RAX: ", " RBX: ", " RCX: ",
@@ -256,6 +256,12 @@ void test_sync_cmd() {
     printf("Iniciando test... (Por favor espere, puede demorar unos segundos)\n");
     
     test_sync_main(3, argv);
-    
+
     printf("--- Test finalizado ---\n");
+}
+
+// lanza el test de pipe: un lector y un escritor que comparten un pipe por id.
+// se ve como el texto va apareciendo a medida que el escritor manda cada trozo.
+void test_pipe_cmd() {
+    test_pipe_main(0, NULL);
 }

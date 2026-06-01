@@ -40,6 +40,12 @@ GLOBAL sys_sem_wait
 GLOBAL sys_sem_post
 GLOBAL sys_delete_sem
 
+GLOBAL sys_create_pipe
+GLOBAL sys_open_pipe
+GLOBAL sys_pipe_read
+GLOBAL sys_pipe_write
+GLOBAL sys_close_pipe
+
 GLOBAL opCodeException
 
 section .text
@@ -103,6 +109,13 @@ sys_open_sem:           syscall 0x33
 sys_sem_wait:           syscall 0x34
 sys_sem_post:           syscall 0x35
 sys_delete_sem:         syscall 0x36
+
+; Pipes
+sys_create_pipe:        syscall 0x37
+sys_open_pipe:          syscall 0x38
+sys_pipe_read:          syscall 0x39
+sys_pipe_write:         syscall 0x3A
+sys_close_pipe:         syscall 0x3B
 
 ; Tiempo
 sys_sleepMilli:         syscall 0x40

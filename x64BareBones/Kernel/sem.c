@@ -10,42 +10,57 @@ int valid_sem_id(int sem_id) { // algo hay que validar seguramente no se que es 
     return sem_id >= 1 && sem_id <= 16;
 }
 
-void sem_post(int sem_id) { 
-    if(!valid_sem_id(sem_id)) return;
-    
-    acquire(&sem_arr[sem_id-1].lock);
-    sem_arr[sem_id-1].status++;
-    if(sem_arr[sem_id-1].status <= 0) {
-        uint64_t to_unblock_pid = sem_arr[sem_id-1].blocked_pids[0]; 
-        for(int i = 0; i < sem_arr[sem_id-1].blocked_pids_counter - 1; i++) {
-            sem_arr[sem_id-1].blocked_pids[i] = sem_arr[sem_id-1].blocked_pids[i+1];
-        }
-        sem_arr[sem_id-1].blocked_pids[--sem_arr[sem_id-1].blocked_pids_counter] = 0;
-        unblock_process(to_unblock_pid);
-    }
-    release(&sem_arr[sem_id-1].lock); 
+// inicializa un sem suelto (el del pipe). la pagina viene con basura, asi que
+// pongo a mano lo que importa para wait/post: status, lock y la cola.
+void sem_init(sem_t * s, int status) {
+    s->id = 0;            // 0 = no esta registrado en el array publico
+    s->status = status;
+    s->lock = 0;
+    s->blocked_pids_counter = 0;
 }
 
+void sem_post_on(sem_t * s) {
+    acquire(&s->lock);
+    s->status++;
+    if(s->status <= 0) {
+        uint64_t to_unblock_pid = s->blocked_pids[0];
+        for(int i = 0; i < s->blocked_pids_counter - 1; i++) {
+            s->blocked_pids[i] = s->blocked_pids[i+1];
+        }
+        s->blocked_pids[--s->blocked_pids_counter] = 0;
+        unblock_process(to_unblock_pid);
+    }
+    release(&s->lock);
+}
 
-void sem_wait(int sem_id) {
-    if(!valid_sem_id(sem_id)) return;
-
-    acquire(&sem_arr[sem_id-1].lock);
-    sem_arr[sem_id-1].status--;
-    if(sem_arr[sem_id-1].status < 0) {
-        if(sem_arr[sem_id-1].blocked_pids_counter >= MAX_BLOCKED_PIDS) {
-            sem_arr[sem_id-1].status++;
-            release(&sem_arr[sem_id-1].lock);
+void sem_wait_on(sem_t * s) {
+    acquire(&s->lock);
+    s->status--;
+    if(s->status < 0) {
+        if(s->blocked_pids_counter >= MAX_BLOCKED_PIDS) {
+            s->status++;
+            release(&s->lock);
             return;
         }
         uint64_t mi_pid = sys_get_pid();
-        sem_arr[sem_id-1].blocked_pids[sem_arr[sem_id-1].blocked_pids_counter++] = mi_pid;
+        s->blocked_pids[s->blocked_pids_counter++] = mi_pid;
         block_process(mi_pid); //primero bloqueo
-        release(&sem_arr[sem_id-1].lock); // luego suelto
+        release(&s->lock); // luego suelto
         force_schedule(); // luego cambio de proceso
         return;
     }
-    release(&sem_arr[sem_id-1].lock);
+    release(&s->lock);
+}
+
+// las versiones por id ahora resuelven id->puntero y delegan en las primitivas
+void sem_post(int sem_id) {
+    if(!valid_sem_id(sem_id)) return;
+    sem_post_on(&sem_arr[sem_id-1]);
+}
+
+void sem_wait(int sem_id) {
+    if(!valid_sem_id(sem_id)) return;
+    sem_wait_on(&sem_arr[sem_id-1]);
 }
 
 int create_sem(int sem_id, int status, const char * sem_name) { // tambien chequear ya no tener un sem creado con el mismo id, por lo pronto asumo que no luego valido

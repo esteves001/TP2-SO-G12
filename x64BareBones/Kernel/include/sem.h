@@ -27,4 +27,10 @@ int create_sem(int sem_id, int status, const char * sem_name); //devuelve 1 si e
 void delete_sem(int sem_id);
 int open_sem(int sem_id);
 
+// primitivas que operan sobre un sem_t suelto (no registrado en el array publico).
+// las usa el pipe para tener sus propios semaforos sin gastar ids del pool de 16.
+void sem_init(sem_t * s, int status);
+void sem_wait_on(sem_t * s);
+void sem_post_on(sem_t * s);
+
 #endif 

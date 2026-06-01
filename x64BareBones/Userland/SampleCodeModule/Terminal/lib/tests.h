@@ -8,4 +8,5 @@
 // No espera a los hijos (no tenemos waitpid todavia), solo los lanza y sale.
 int test_prio_main(int argc, char ** argv);
 int test_sync_main(int argc, char ** argv);
+int test_pipe_main(int argc, char ** argv);
 #endif
