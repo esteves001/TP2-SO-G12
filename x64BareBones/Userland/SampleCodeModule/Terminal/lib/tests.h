@@ -3,10 +3,13 @@
 
 #include <stdint.h>
 
-// test_prio: crea 3 procesos que se incrementan hasta N, con prios distintas.
-// El de mayor prio deberia terminar antes (la marca '*' aparece primero).
-// No espera a los hijos (no tenemos waitpid todavia), solo los lanza y sale.
-int test_prio_main(int argc, char ** argv);
-int test_sync_main(int argc, char ** argv);
+// entry points de los tests. corren como procesos de usuario (lanzar con
+// sys_create_process). cada uno valida sus args y sale con sys_exit().
+void test_mm(int argc, char ** argv);     // <memoria_max_bytes>
+void test_proc(int argc, char ** argv);   // <cant_procesos>
+void test_prio(int argc, char ** argv);   // <valor_target>
+void test_sync(int argc, char ** argv);   // <pares> <loops> <use_sem>
+
+// demo de pipe (no es del enunciado), sigue corriendo inline desde la shell.
 int test_pipe_main(int argc, char ** argv);
 #endif

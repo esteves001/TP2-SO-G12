@@ -213,12 +213,17 @@ void ps_cmd() {
     }
 }
 
-// lanza el test_prio: 3 workers en y=300/320/340 con prios 1/3/5. el azul (C)
-// deberia terminar primero. no espera a que terminen, vuelve al prompt.
+// lanza test_prio como proceso de usuario y lo espera (foreground).
+// pide el target porque la shell heredada no parsea args en la linea.
 void test_prio_cmd() {
-    test_prio_main(0, NULL);
-    printf("test_prio lanzado: 3 workers (A rojo prio1, B verde prio3, C azul prio5).\n");
-    printf("C deberia llegar al '*' primero.\n");
+    char input_buffer[BUFFER];
+    printf("Ingrese el valor target (ej: 100000000): ");
+    readInput(input_buffer);
+    printf("\n");
+
+    char * argv[] = { input_buffer };
+    int64_t pid = sys_create_process((void *)&test_prio, "test_prio", 1, argv);
+    if (pid > 0) sys_waitpid(pid);   // foreground: espero a que termine
 }
 
 void test_sync_cmd() {
@@ -258,8 +263,10 @@ void test_sync_cmd() {
     char *argv[] = {pairs_str, loops_str, use_sem_str};
 
     printf("Iniciando test... (Por favor espere, puede demorar unos segundos)\n");
-    
-    test_sync_main(3, argv);
+
+    // lanzo test_sync como proceso de usuario y lo espero (foreground)
+    int64_t pid = sys_create_process((void *)&test_sync, "test_sync", 3, argv);
+    if (pid > 0) sys_waitpid(pid);
 
     printf("--- Test finalizado ---\n");
 }
