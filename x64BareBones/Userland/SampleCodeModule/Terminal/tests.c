@@ -40,9 +40,9 @@ int test_prio_main(int argc, char ** argv) {
     char * b_args[] = {"1"};
     char * c_args[] = {"2"};
 
-    int64_t pid_a = sys_create_process((void *)&prio_worker_user, "p_a", 1, a_args);
-    int64_t pid_b = sys_create_process((void *)&prio_worker_user, "p_b", 1, b_args);
-    int64_t pid_c = sys_create_process((void *)&prio_worker_user, "p_c", 1, c_args);
+    int64_t pid_a = sys_create_process((void *)&prio_worker_user, "p_a", 1, a_args, 0, 0);
+    int64_t pid_b = sys_create_process((void *)&prio_worker_user, "p_b", 1, b_args, 0, 0);
+    int64_t pid_c = sys_create_process((void *)&prio_worker_user, "p_c", 1, c_args, 0, 0);
 
     // les seteo prios distintas: 1, 3, 5. El de prio 5 deberia terminar
     // primero (azul), despues el de 3 (verde), ultimo el de 1 (rojo).
@@ -166,8 +166,8 @@ int test_sync_main(int argc, char **argv) {
     uint64_t procesos_creados = 0;
 
     for (uint64_t i = 0; i < pairs; i++) {
-        if (sys_create_process(&inc_process, "inc_proc", 2, args_para_hijos) > 0) procesos_creados++;
-        if (sys_create_process(&dec_process, "dec_proc", 2, args_para_hijos) > 0) procesos_creados++;
+        if (sys_create_process(&inc_process, "inc_proc", 2, args_para_hijos, 0, 0) > 0) procesos_creados++;
+        if (sys_create_process(&dec_process, "dec_proc", 2, args_para_hijos, 0, 0) > 0) procesos_creados++;
     }
 
     // Esperamos SOLAMENTE a la cantidad real de hijos que nacieron
@@ -233,8 +233,8 @@ int test_pipe_main(int argc, char ** argv) {
     sys_create_sem(PIPE_SYNC_ID, 0, "pipe_sync");
 
     int creados = 0;
-    if(sys_create_process(&pipe_reader, "p_reader", 0, NULL) > 0) creados++;
-    if(sys_create_process(&pipe_writer, "p_writer", 0, NULL) > 0) creados++;
+    if(sys_create_process(&pipe_reader, "p_reader", 0, NULL, 0, 0) > 0) creados++;
+    if(sys_create_process(&pipe_writer, "p_writer", 0, NULL, 0, 0) > 0) creados++;
 
     // espero a que terminen los dos (waitpid casero con el sem)
     for(int i = 0; i < creados; i++) sys_sem_wait(PIPE_SYNC_ID);

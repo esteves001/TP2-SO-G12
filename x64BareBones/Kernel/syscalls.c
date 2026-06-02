@@ -164,7 +164,8 @@ void syscallDispatcher(Registers_t *regs)
     uint64_t arg2 = regs->rsi;
     uint64_t arg3 = regs->rdx;
     uint64_t arg4 = regs->rcx;
-    // arg5/arg6 (r8/r9) los agrego cuando un syscall los necesite.
+    uint64_t arg5 = regs->r8;
+    uint64_t arg6 = regs->r9;
 
     /*
         Las que son 0x1... son syscalls de video
@@ -365,20 +366,22 @@ void syscallDispatcher(Registers_t *regs)
             break;
 
         case 0x31:
-            // create_process: userland crea un proceso. devuelve pid o -1.
-            // arg1=entry, arg2=name, arg3=argc, arg4=argv.
-            // TODO seguridad: hoy SOLO valido que entry >= 0x400000 (donde
-            // arranca el modulo userland). NO valido que el name/argv sean
-            // punteros legales ni que el rango este dentro del binario.
-            // Sin separacion kernel/user (todos corren en ring 0) cualquier
-            // userland puede saltar a codigo del kernel. Hay que arreglarlo
-            // cuando metamos modo usuario real.
+            // create_process: arg1=entry, arg2=name, arg3=argc, arg4=argv,
+            // arg5=pipe_in_id (0=ninguno), arg6=pipe_out_id (0=ninguno).
             if(arg1 < 0x400000) {
                 regs->rax = (uint64_t)-1;
                 break;
             }
             regs->rax = (uint64_t)create_process((void *)arg1, (const char *)arg2,
-                                                 (int)arg3, (char **)arg4);
+                                                 (int)arg3, (char **)arg4,
+                                                 (int)arg5, (int)arg6);
+            break;
+
+        case 0x44:
+            // set_foreground(pid, fg): marca el proceso como fg(1) o bg(0).
+            if(arg1 > 0 && arg1 <= MAX_PROCESSES && process_table[arg1-1] != NULL)
+                process_table[arg1-1]->foreground = (int)arg2;
+            regs->rax = 0;
             break;
 
         case 0x32:

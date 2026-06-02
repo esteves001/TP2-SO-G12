@@ -94,3 +94,8 @@ void pipe_close_id(int id) {
     pipe_close(pipe_table[id-1]);
     pipe_table[id-1] = NULL;
 }
+
+pipe_t * pipe_table_get(int id) {
+    if(id < 1 || id > MAX_PIPES) return NULL;
+    return pipe_table[id-1];
+}
