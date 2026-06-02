@@ -30,6 +30,9 @@ typedef struct {
 
     uint64_t priority;        // 1..5, default 1
     uint64_t ticks_remaining; // cuantos ticks me quedan en este turno
+
+    int foreground;           // 1 si corre en foreground, 0 si background
+    uint64_t waiting_for_pid; // pid que estoy esperando (waitpid), 0 si no espero a nadie
 } pcb_t;
 
 // Struct que devuelvo al userland en la syscall ps. NO es el PCB: es un
@@ -68,6 +71,9 @@ void unblock_process(uint64_t pid);
 
 // cambio la prio de un proceso. devuelve 0 si anduvo, -1 si pid o prio invalidos.
 int set_priority(uint64_t pid, uint64_t new_priority);
+
+// Bloquea al caller hasta que el proceso pid termine. No-op si pid invalido.
+void waitpid(uint64_t pid);
 
 // Primer salto al primer proceso (implementado en asm). No vuelve nunca.
 // rsp = rsp del PCB del primer proceso

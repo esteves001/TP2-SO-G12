@@ -43,11 +43,13 @@ uint8_t isSpecialChar(char c)
     return (c == '\n' || c == '\r' || c == '\t' || c == '\b');
 }
 
-uint64_t sys_write(uint8_t fd, const char *str, uint64_t count) 
+uint64_t sys_write(uint8_t fd, const char *str, uint64_t count)
 {
-    // Solo se soporta escritura en STDOUT
-    if (fd != STDOUT) 
-        return 0; 
+    if (fd != STDOUT)
+        return 0;
+
+    if (current_process != NULL && current_process->pipe_out != NULL)
+        return (uint64_t)pipe_write(current_process->pipe_out, (char*)str, (int)count);
 
     int width = getWidth();
     int height = getHeight();
@@ -130,22 +132,20 @@ uint64_t sys_write(uint8_t fd, const char *str, uint64_t count)
  
 uint64_t sys_read(uint8_t fd, char *buffer, uint64_t count)
 {
-    if(fd == STDIN)
+    if (fd != STDIN)
+        return 0;
+
+    if (current_process != NULL && current_process->pipe_in != NULL)
+        return (uint64_t)pipe_read(current_process->pipe_in, buffer, (int)count);
+
+    char c;
+    for (uint64_t i = 0; i < count; i++)
     {
-        char c;
-
-        for (uint64_t i = 0; i < count; i++)
-        {
-            if (!(c = kbd_get_char()))
-                return i;
-
-            buffer[i] = c;
-        }
-        
-        return count;
+        if (!(c = kbd_get_char()))
+            return i;
+        buffer[i] = c;
     }
-
-    return 0;
+    return count;
 }
 
 uint64_t get_pid()
@@ -436,6 +436,11 @@ void syscallDispatcher(Registers_t *regs)
 
         case 0x42:
             free_block((void*)arg1);
+            regs->rax = 0;
+            break;
+
+        case 0x43:
+            waitpid(arg1);
             regs->rax = 0;
             break;
 

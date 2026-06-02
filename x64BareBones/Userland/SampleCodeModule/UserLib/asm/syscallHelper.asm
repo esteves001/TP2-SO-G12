@@ -48,6 +48,7 @@ GLOBAL sys_close_pipe
 
 GLOBAL sys_malloc
 GLOBAL sys_free
+GLOBAL sys_waitpid
 
 GLOBAL opCodeException
 
@@ -97,15 +98,14 @@ sys_kill:               syscall 0x25
 sys_block:              syscall 0x26
 sys_unblock:            syscall 0x27
 sys_ps:                 syscall 0x28
+sys_create_process:     syscall 0x31
+sys_waitpid:            syscall 0x43
 
 ; Memoria
 sys_mem_stats:          syscall 0x29
 
 ; Prioridades
 sys_nice:               syscall 0x30
-
-; Procesos (continuacion)
-sys_create_process:     syscall 0x31
 ; Semaforos
 sys_create_sem:         syscall 0x32
 sys_open_sem:           syscall 0x33
@@ -126,6 +126,9 @@ sys_sleepMilli:         syscall 0x40
 ; Memoria dinamica
 sys_malloc:             syscall 0x41
 sys_free:               syscall 0x42
+
+
+
 
 opCodeException:
 	ud2

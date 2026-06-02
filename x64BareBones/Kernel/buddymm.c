@@ -132,11 +132,7 @@ static void put_block(uint8_t *actual, uint64_t order) {
     list_push(&free_lists[order], (block_node_t *)actual);
 }
 
-// Reserva un bloque de memoria de `bytes` bytes.
-// Calcula el orden necesario según el tamaño solicitado,
-// obtiene un bloque del buddy system (partiendo bloques más grandes si es necesario),
-// almacena la metadata del orden al inicio del bloque, y devuelve un puntero al contenido.
-// También maneja la asignación de páginas individuales (bytes <= PAGE_SIZE).
+
 void* allocate_page(void) {
     return (void*)get_block(0);
 }
@@ -146,6 +142,11 @@ void free_page(void* ptr) {
     put_block((uint8_t*)ptr, 0);
 }
 
+// Reserva un bloque de memoria de `bytes` bytes.
+// Calcula el orden necesario según el tamaño solicitado,
+// obtiene un bloque del buddy system (partiendo bloques más grandes si es necesario),
+// almacena la metadata del orden al inicio del bloque, y devuelve un puntero al contenido.
+// También maneja la asignación de páginas individuales (bytes <= PAGE_SIZE).
 void *allocate_block(uint64_t bytes) {
     if (bytes == 0) return NULL;
 

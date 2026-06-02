@@ -53,8 +53,8 @@ typedef struct {
     int state;              // 0 READY, 1 RUNNING, 2 BLOCKED
     uint64_t rsp;
     uint64_t stack_base;
-    uint64_t priority;      // placeholder
-    int foreground;         // placeholder
+    uint64_t priority;
+    int foreground;
 } process_info_t;
 
 // 0x28 - le paso un buffer y el max que entra; me devuelve cuantos llen.
@@ -98,5 +98,6 @@ extern void sys_close_pipe(int id);                    // 0x3B - cierra
 // Memoria dinamica (userland malloc/free via kernel)
 extern void* sys_malloc(uint64_t size);   // 0x41 - reserva bloque
 extern void  sys_free(void* ptr);         // 0x42 - libera bloque
+extern void  sys_waitpid(uint64_t pid);   // 0x43 - espera que pid termine
 
 #endif

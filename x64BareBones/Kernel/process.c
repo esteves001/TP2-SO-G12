@@ -182,6 +182,8 @@ int64_t create_process(void * entry_point, const char * process_name, int argc, 
     new_process->pipe_out = NULL;
     new_process->priority = MIN_PRIORITY;
     new_process->ticks_remaining = MIN_PRIORITY;
+    new_process->foreground = 1;
+    new_process->waiting_for_pid = 0;
         
     for(int i = 0 ; i < MAX_PROCESSES ; i++) {
         if( process_table[i] == NULL) {
@@ -208,6 +210,23 @@ void exit_process(pcb_t * proc) {
     pipe_close(proc->pipe_in);
     pipe_close(proc->pipe_out);
     proc->state = KILLED;
+
+    // desbloqueo a quien estaba esperando este proceso
+    for(int i = 0; i < MAX_PROCESSES; i++) {
+        if(process_table[i] != NULL && process_table[i]->waiting_for_pid == proc->pid) {
+            process_table[i]->waiting_for_pid = 0;
+            unblock_process(process_table[i]->pid);
+        }
+    }
+}
+
+void waitpid(uint64_t pid) {
+    if(pid == 0 || pid > MAX_PROCESSES || process_table[pid-1] == NULL) return;
+    if(process_table[pid-1]->state == KILLED) return;
+
+    current_process->waiting_for_pid = pid;
+    block_process(current_process->pid);
+    force_schedule();
 }
 void block_process(uint64_t pid) {
     if(pid > 0 && process_table[pid-1] != NULL) process_table[pid-1]->state = BLOCKED;
@@ -269,7 +288,7 @@ int ps_snapshot(process_info_t * buf, int max) {
         // empieza al final de esa pagina (creci hacia abajo desde ahi).
         out->stack_base = (uint64_t)p + PAGE_SIZE;
         out->priority = p->priority;
-        out->foreground = 0;   // todavia no implementamos fg/bg
+        out->foreground = p->foreground;
         written++;
     }
     return written;
