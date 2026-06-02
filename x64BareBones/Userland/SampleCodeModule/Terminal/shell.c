@@ -15,7 +15,7 @@ typedef struct {
     int         can_bg; // 1 si puede ejecutarse como proceso (fn llama sys_exit al terminar)
 } cmd_t;
 
-// --- Forward declarations ---
+
 static void cmd_help(int argc, char **argv);
 static void cmd_clear(int argc, char **argv);
 static void cmd_date(int argc, char **argv);
@@ -77,10 +77,8 @@ static int tokenize(char *str, char **argv, int max) {
 }
 
 // Lanza fn como proceso fg: crea proceso, registra fg_pid, espera.
-static void run_as_process_fg(CmdFn fn, int argc, char **argv,
-                               int pipe_in_id, int pipe_out_id) {
-    int64_t pid = sys_create_process((void *)fn, argv[0], argc, argv,
-                                     pipe_in_id, pipe_out_id);
+static void run_as_process_fg(CmdFn fn, int argc, char **argv, int pipe_in_id, int pipe_out_id) {
+    int64_t pid = sys_create_process((void *)fn, argv[0], argc, argv, pipe_in_id, pipe_out_id);
     if (pid < 0) { printf("error: proceso no creado\n"); return; }
     sys_set_fg_pid(pid);
     sys_waitpid(pid);
@@ -88,11 +86,12 @@ static void run_as_process_fg(CmdFn fn, int argc, char **argv,
 }
 
 // Lanza fn como proceso bg.
-static void run_as_process_bg(CmdFn fn, int argc, char **argv,
-                               int pipe_in_id, int pipe_out_id) {
-    int64_t pid = sys_create_process((void *)fn, argv[0], argc, argv,
-                                     pipe_in_id, pipe_out_id);
-    if (pid < 0) { printf("error: proceso no creado\n"); return; }
+static void run_as_process_bg(CmdFn fn, int argc, char **argv, int pipe_in_id, int pipe_out_id) {
+    int64_t pid = sys_create_process((void *)fn, argv[0], argc, argv, pipe_in_id, pipe_out_id);
+    if (pid < 0) { 
+        printf("error: proceso no creado\n"); 
+        return; 
+    }
     sys_set_foreground(pid, 0);
     printf("[bg] pid %d\n", (int)pid);
 }
@@ -157,10 +156,16 @@ static void execute_line(char *line) {
     int argc = tokenize(line, argv, MAX_ARGS);
     if (argc == 0) return;
 
-    if (strcmp(argv[0], "exit") == 0) { exitShell(); return; }
+    if (strcmp(argv[0], "exit") == 0) { 
+        exitShell(); 
+        return;
+    }
 
     cmd_t *cmd = find_cmd(argv[0]);
-    if (!cmd) { notACommand(argv[0]); return; }
+    if (!cmd) { 
+        notACommand(argv[0]); 
+        return; 
+    }
 
     if (is_bg) {
         if (!cmd->can_bg) {
@@ -236,7 +241,9 @@ static void cmd_help(int argc, char **argv) {
     printf("Comandos disponibles:\n");
     for (int i = 0; cmd_table[i].name != (void*)0; i++) {
         printf("  %s", cmd_table[i].name);
-        if (cmd_table[i].can_bg) printf(" [bg/pipe]");
+        if (cmd_table[i].can_bg){
+           printf(" [bg/pipe]");
+        }
         printf("\n");
     }
     printf("  exit\n");
@@ -340,7 +347,7 @@ static void cmd_test_pipe(int argc, char **argv) {
     sys_exit();
 }
 
-// --- Funciones legacy ---
+
 void notACommand(char *input) {
     printf("'%s': comando no encontrado. Escribi 'help'.\n", input);
 }
