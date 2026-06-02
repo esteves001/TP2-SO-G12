@@ -143,6 +143,8 @@ uint64_t sys_read(uint8_t fd, char *buffer, uint64_t count)
     {
         if (!(c = kbd_get_char()))
             return i;
+        if (c == 4) // Ctrl+D = EOF
+            return i;
         buffer[i] = c;
     }
     return count;
@@ -377,13 +379,6 @@ void syscallDispatcher(Registers_t *regs)
                                                  (int)arg5, (int)arg6);
             break;
 
-        case 0x44:
-            // set_foreground(pid, fg): marca el proceso como fg(1) o bg(0).
-            if(arg1 > 0 && arg1 <= MAX_PROCESSES && process_table[arg1-1] != NULL)
-                process_table[arg1-1]->foreground = (int)arg2;
-            regs->rax = 0;
-            break;
-
         case 0x32:
             regs->rax = (uint64_t)create_sem((int)arg1, (int)arg2, (const char *)arg3);
             break;
@@ -444,6 +439,17 @@ void syscallDispatcher(Registers_t *regs)
 
         case 0x43:
             waitpid(arg1);
+            regs->rax = 0;
+            break;
+
+        case 0x44:
+            if(arg1 > 0 && arg1 <= MAX_PROCESSES && process_table[arg1-1] != NULL)
+                process_table[arg1-1]->foreground = (int)arg2;
+            regs->rax = 0;
+            break;
+
+        case 0x45:
+            set_fg_pid(arg1);
             regs->rax = 0;
             break;
 

@@ -27,8 +27,8 @@ static void idle_process() {
 // helper publico para crear el idle, idle_process es static a este archivo
 void create_idle_process() {
     create_process(&idle_process, "idle", 0, NULL, 0, 0);
-    // idle siempre es el primer create -> cae en el slot 0
     idle_pcb = process_table[0];
+    idle_pcb->foreground = 0;
 }
 
 // copio argc/argv adentro del page del proceso. Layout:

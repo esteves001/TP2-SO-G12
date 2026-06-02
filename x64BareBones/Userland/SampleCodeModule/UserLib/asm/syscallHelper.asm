@@ -50,6 +50,7 @@ GLOBAL sys_malloc
 GLOBAL sys_free
 GLOBAL sys_waitpid
 GLOBAL sys_set_foreground
+GLOBAL sys_set_fg_pid
 
 GLOBAL opCodeException
 
@@ -128,6 +129,7 @@ sys_sleepMilli:         syscall 0x40
 sys_malloc:             syscall 0x41
 sys_free:               syscall 0x42
 sys_set_foreground:     syscall 0x44
+sys_set_fg_pid:         syscall 0x45
 
 
 
