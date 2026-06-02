@@ -41,7 +41,7 @@ void test_proc(int argc, char ** argv) {
 
         // creo los dummies
         for (rq = 0; rq < max_processes; rq++) {
-            p_rqs[rq].pid = sys_create_process((void *)&endless_loop, "endless", 0, argv_dummy);
+            p_rqs[rq].pid = sys_create_process((void *)&endless_loop, "endless", 0, argv_dummy, 0, 0);
 
             if (p_rqs[rq].pid == -1) {
                 printf("test_proc ERROR: no se pudo crear el proceso\n");

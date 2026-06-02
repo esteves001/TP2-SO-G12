@@ -66,7 +66,10 @@ extern int64_t sys_nice(uint64_t pid, uint64_t new_priority);
 
 // 0x31 - userland crea un proceso. devuelve pid (>0) o -1 si fallo.
 // entry es un puntero a funcion dentro del modulo userland.
-extern int64_t sys_create_process(void * entry, const char * name, int argc, char ** argv);
+// pipe_in_id/pipe_out_id: id del pipe (1..16) o 0 para ninguno.
+extern int64_t sys_create_process(void * entry, const char * name, int argc, char ** argv, int pipe_in_id, int pipe_out_id);
+extern void    sys_set_foreground(uint64_t pid, int fg);  // 0x44 - marca fg(1) o bg(0)
+extern void    sys_set_fg_pid(uint64_t pid);              // 0x45 - pid que Ctrl+C mata
 
 // Estado del memory manager para el comando mem.
 // IMPORTANTE: definicion duplicada en Kernel/include/memoryManager.h.

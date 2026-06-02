@@ -25,10 +25,11 @@ void pipe_close(pipe_t * pipe);                   // cierra y libera el pipe
 // igual que los semaforos. ids 1..MAX_PIPES.
 #define MAX_PIPES 16
 
-int  pipe_create_id(int id);                    // crea el pipe con ese id (-1 si ya existe/invalido)
-int  pipe_open_id(int id);                       // valida que exista para usarlo
-int  pipe_read_id(int id, char * buf, int n);    // lee del pipe id (bloqueante)
-int  pipe_write_id(int id, char * buf, int n);   // escribe al pipe id (bloqueante)
-void pipe_close_id(int id);                      // cierra y libera el pipe id
+int      pipe_create_id(int id);                    // crea el pipe con ese id (-1 si ya existe/invalido)
+int      pipe_open_id(int id);                       // valida que exista para usarlo
+int      pipe_read_id(int id, char * buf, int n);    // lee del pipe id (bloqueante)
+int      pipe_write_id(int id, char * buf, int n);   // escribe al pipe id (bloqueante)
+void     pipe_close_id(int id);                      // cierra y libera el pipe id
+pipe_t * pipe_table_get(int id);                     // devuelve el pipe_t* por id (NULL si invalido)
 
 #endif

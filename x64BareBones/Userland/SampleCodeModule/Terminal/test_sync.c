@@ -68,9 +68,9 @@ void test_sync(int argc, char ** argv) {
     int n = 0;
 
     for (uint64_t i = 0; i < pairs; i++) {
-        int64_t pi = sys_create_process((void *) &inc_process, "inc", 2, hijo_argv);
+        int64_t pi = sys_create_process((void *) &inc_process, "inc", 2, hijo_argv, 0, 0);
         if (pi > 0) pids[n++] = pi;
-        int64_t pd = sys_create_process((void *) &dec_process, "dec", 2, hijo_argv);
+        int64_t pd = sys_create_process((void *) &dec_process, "dec", 2, hijo_argv, 0, 0);
         if (pd > 0) pids[n++] = pd;
     }
 

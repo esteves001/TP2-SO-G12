@@ -61,7 +61,8 @@ void scheduler();
 // Las strings se COPIAN dentro de la pagina del proceso, no me quedo con
 // punteros al stack del caller.
 // devuelve el pid creado (>0) o -1 si fallo.
-int64_t create_process(void * entry_point, const char * process_name, int argc, char ** argv);
+// pipe_in_id / pipe_out_id: id de pipe (1..MAX_PIPES) o 0 para ninguno.
+int64_t create_process(void * entry_point, const char * process_name, int argc, char ** argv, int pipe_in_id, int pipe_out_id);
 void create_idle_process();   // crea el proceso idle (necesario al boot)
 // Mata el proceso dado. Recibe el PCB para servir tanto a exit (paso current)
 // como a kill(pid) (paso process_table[pid-1]).

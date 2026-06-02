@@ -26,9 +26,9 @@ static void idle_process() {
 
 // helper publico para crear el idle, idle_process es static a este archivo
 void create_idle_process() {
-    create_process(&idle_process, "idle", 0, NULL);
-    // idle siempre es el primer create -> cae en el slot 0
+    create_process(&idle_process, "idle", 0, NULL, 0, 0);
     idle_pcb = process_table[0];
+    idle_pcb->foreground = 0;
 }
 
 // copio argc/argv adentro del page del proceso. Layout:
@@ -128,7 +128,7 @@ void scheduler() {
     current_process = NULL; // no deberia pasar nunca
 }
 
-int64_t create_process(void * entry_point, const char * process_name, int argc, char ** argv) {
+int64_t create_process(void * entry_point, const char * process_name, int argc, char ** argv, int pipe_in_id, int pipe_out_id) {
     if(entry_point == NULL || process_name == NULL) return -1;
 
     void * page = allocate_page();
@@ -178,8 +178,8 @@ int64_t create_process(void * entry_point, const char * process_name, int argc, 
         i++;
     }
     new_process->process_name[i] = 0; // terminador
-    new_process->pipe_in = NULL;
-    new_process->pipe_out = NULL;
+    new_process->pipe_in  = (pipe_in_id  > 0) ? pipe_table_get(pipe_in_id)  : NULL;
+    new_process->pipe_out = (pipe_out_id > 0) ? pipe_table_get(pipe_out_id) : NULL;
     new_process->priority = MIN_PRIORITY;
     new_process->ticks_remaining = MIN_PRIORITY;
     new_process->foreground = 1;

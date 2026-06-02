@@ -35,7 +35,7 @@ static void correr_tanda(char * target_str, uint64_t * prios) {
         idx_str[0] = '0' + i;
         idx_str[1] = '\0';
         w_argv[0] = idx_str;    // el kernel copia la string al crear, puedo reusar el buffer
-        pids[i] = sys_create_process((void *) &prio_worker, "prio_w", 2, w_argv);
+        pids[i] = sys_create_process((void *) &prio_worker, "prio_w", 2, w_argv, 0, 0);
         if (pids[i] > 0 && prios != 0)
             sys_nice(pids[i], prios[i]);
     }

@@ -52,8 +52,8 @@ int test_pipe_main(int argc, char ** argv) {
     sys_create_sem(PIPE_SYNC_ID, 0, "pipe_sync");
 
     int creados = 0;
-    if(sys_create_process(&pipe_reader, "p_reader", 0, NULL) > 0) creados++;
-    if(sys_create_process(&pipe_writer, "p_writer", 0, NULL) > 0) creados++;
+    if(sys_create_process(&pipe_reader, "p_reader", 0, NULL, 0, 0) > 0) creados++;
+    if(sys_create_process(&pipe_writer, "p_writer", 0, NULL, 0, 0) > 0) creados++;
 
     // espero a que terminen los dos (waitpid casero con el sem)
     for(int i = 0; i < creados; i++) sys_sem_wait(PIPE_SYNC_ID);

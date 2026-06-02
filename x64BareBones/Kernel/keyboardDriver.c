@@ -1,4 +1,6 @@
 #include <keyboardDriver.h>
+#include "process.h"
+#include "interrupts.h"
 
 // --- Definiciones de Scancodes (Set 1) ---
 // Teclas Modificadoras (Make codes)
@@ -46,6 +48,9 @@ static const char scancode_to_ascii_map_shifted[128] = {
 
 #define KEYBOARD_BUFFER_SIZE 256
 static char keyboard_buffer[KEYBOARD_BUFFER_SIZE];
+static uint64_t fg_pid = 0;
+
+void set_fg_pid(uint64_t pid) { fg_pid = pid; }
 static unsigned int buffer_write_idx = 0;
 static unsigned int buffer_read_idx = 0;
 static unsigned int buffer_count = 0;
@@ -137,12 +142,19 @@ void keyboard_handler(Registers_t *regs)
     uint8_t scanCode = getKeyCode();
     char c = procesScanCode(scanCode);
 
-    if (kbd_modifier_state.ctrl && (c == 'r' || c == 'R'))
-    {
+    if (kbd_modifier_state.ctrl && (c == 'r' || c == 'R')) {
         loadSnapshot(regs);
-    }
-
-    else if (c != 0) {
+    } else if (kbd_modifier_state.ctrl && (c == 'c' || c == 'C')) {
+        if (fg_pid > 0 && fg_pid <= MAX_PROCESSES && process_table[fg_pid-1] != NULL) {
+            exit_process(process_table[fg_pid-1]);
+            fg_pid = 0;
+            force_schedule();
+        } else {
+            loadCharToBuffer(3); // Ctrl+C al lector (cancela readInput)
+        }
+    } else if (kbd_modifier_state.ctrl && (c == 'd' || c == 'D')) {
+        loadCharToBuffer(4); // Ctrl+D = EOF
+    } else if (c != 0) {
         loadCharToBuffer(c);
     }
 }

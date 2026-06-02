@@ -75,7 +75,7 @@ int printf(const char *fmt, ...)
         case 'c': putchar((char)va_arg(ap, int)); break;
         case 's': {
             char *s = va_arg(ap, char*);
-            while (*s) putchar(*s++);
+            if (s) while (*s) putchar(*s++);
             break;
         }
         case '%': putchar('%'); break;

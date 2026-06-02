@@ -22,4 +22,7 @@ void keyboard_handler();
 // Retorna 0 si el buffer está vacío.
 char kbd_get_char();
 
+// Setea el pid del proceso en foreground para Ctrl+C.
+void set_fg_pid(uint64_t pid);
+
 #endif

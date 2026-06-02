@@ -153,23 +153,23 @@ int main()
 
 #ifdef SCHED_TEST
 	// Modo test del scheduler: dos procesos imprimiendo en pantalla
-	create_process(&test_a, "test_a", 0, NULL);
-	create_process(&test_b, "test_b", 0, NULL);
+	create_process(&test_a, "test_a", 0, NULL, 0, 0);
+	create_process(&test_b, "test_b", 0, NULL, 0, 0);
 #elif defined(ARGS_TEST)
 	// Modo test de argc/argv: arranca test_args con 3 strings
 	char * args[] = {"hola", "mundo", "tp2"};
-	create_process(&test_args, "test_args", 3, args);
+	create_process(&test_args, "test_args", 3, args, 0, 0);
 #elif defined(PRIO_TEST)
 	// 3 workers + prioridades 1, 3, 5. Los pids quedan 2, 3, 4 porque
 	// idle ya se llevo el 1.
-	create_process(&prio_worker, "p_a", 0, NULL);
-	create_process(&prio_worker, "p_b", 0, NULL);
-	create_process(&prio_worker, "p_c", 0, NULL);
+	create_process(&prio_worker, "p_a", 0, NULL, 0, 0);
+	create_process(&prio_worker, "p_b", 0, NULL, 0, 0);
+	create_process(&prio_worker, "p_c", 0, NULL, 0, 0);
 	set_priority(2, 1);
 	set_priority(3, 3);
 	set_priority(4, 5);
 #else
-	create_process((void *)sampleCodeModuleAddress, "init", 0, NULL);  // proceso 2: userland normal
+	create_process((void *)sampleCodeModuleAddress, "init", 0, NULL, 0, 0);
 #endif
 
 	scheduler();                                              // elige el primero (queda en current_process)
