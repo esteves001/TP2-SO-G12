@@ -430,6 +430,15 @@ void syscallDispatcher(Registers_t *regs)
             regs->rax = 0;
             break;
 
+        case 0x41:
+            regs->rax = (uint64_t)allocate_block(arg1);
+            break;
+
+        case 0x42:
+            free_block((void*)arg1);
+            regs->rax = 0;
+            break;
+
         default:
             // Syscall desconocida o no implementada
             // Se imprime un error o se establece un código de error en rax

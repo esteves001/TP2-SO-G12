@@ -132,7 +132,21 @@ static void put_block(uint8_t *actual, uint64_t order) {
     list_push(&free_lists[order], (block_node_t *)actual);
 }
 
-void *alloc_memory(uint64_t bytes) {
+// Reserva un bloque de memoria de `bytes` bytes.
+// Calcula el orden necesario según el tamaño solicitado,
+// obtiene un bloque del buddy system (partiendo bloques más grandes si es necesario),
+// almacena la metadata del orden al inicio del bloque, y devuelve un puntero al contenido.
+// También maneja la asignación de páginas individuales (bytes <= PAGE_SIZE).
+void* allocate_page(void) {
+    return (void*)get_block(0);
+}
+
+void free_page(void* ptr) {
+    if (ptr == NULL) return;
+    put_block((uint8_t*)ptr, 0);
+}
+
+void *allocate_block(uint64_t bytes) {
     if (bytes == 0) return NULL;
 
     //bytes pedidos + 8 bytes de metadatos para guardar el orden
@@ -149,8 +163,11 @@ void *alloc_memory(uint64_t bytes) {
     return (void *)((uint8_t *)block + sizeof(uint64_t));
 }
 
-
-void free_memory(void *ptr) {
+// Libera un bloque previamente asignado con allocate_block.
+// Recupera el orden almacenado en la metadata y delega a put_block
+// para devolver el bloque al buddy system, fusionando con su buddy mientras sea posible.
+// Funciona tanto para bloques individuales (páginas) como para bloques mayores.
+void free_block(void *ptr) {
     if (ptr == NULL) return;
 
     uint8_t  *actual = (uint8_t *)ptr - sizeof(uint64_t);
@@ -159,16 +176,6 @@ void free_memory(void *ptr) {
     put_block(actual, order);
 }
 
-// una pagina es un bloque de orden 0 entero. NO uso metadata: el orden ya lo se.
-// asi allocate_page devuelve 4096 bytes alineados, igual que el bitmap.
-void *allocate_page(void) {
-    return (void *) get_block(0);
-}
-
-void free_page(void *ptr) {
-    if (ptr == NULL) return;
-    put_block((uint8_t *)ptr, 0); //se que es orden 0
-}
 
 void get_mem_stats(mem_info_t *out) {
     if (out == NULL) return;

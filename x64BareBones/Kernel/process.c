@@ -92,7 +92,7 @@ void scheduler() {
         if(process_table[i] != NULL && process_table[i]->state == KILLED) {
             // si alguien mato a idle (no deberia pasar nunca), limpio el puntero
             if(process_table[i] == idle_pcb) idle_pcb = NULL;
-            free_page(process_table[i]);
+            free_block(process_table[i]);
             process_table[i] = NULL;
         }
     }

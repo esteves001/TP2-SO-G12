@@ -95,4 +95,8 @@ extern int  sys_pipe_read(int id, char * buf, int n);  // 0x39 - lee (bloqueante
 extern int  sys_pipe_write(int id, char * buf, int n); // 0x3A - escribe (bloqueante)
 extern void sys_close_pipe(int id);                    // 0x3B - cierra
 
+// Memoria dinamica (userland malloc/free via kernel)
+extern void* sys_malloc(uint64_t size);   // 0x41 - reserva bloque
+extern void  sys_free(void* ptr);         // 0x42 - libera bloque
+
 #endif

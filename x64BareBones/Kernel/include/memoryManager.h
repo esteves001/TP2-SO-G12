@@ -9,11 +9,22 @@
 // Inicializa el Memory Manager marcando los bloques ocupados por el OS
 void initialize_memory_manager(void);
 
-// Reserva una página de 4 KiB y devuelve el puntero al inicio de la misma
-void* allocate_page(); // para poder testear pasa a btyes
+// -- Uso interno del Kernel: (PCBs, pipes)
+// Reserva una página de 4 KiB (uso interno del kernel: PCBs, pipes).
+void* allocate_page(void);
 
-// Libera una página previamente asignada
+// Libera una página reservada con allocate_page.
 void free_page(void* address);
+// ---
+
+// --- Userland malloc (syscalls 0x41/0x42)
+// Reserva un bloque de `size` bytes (userland malloc). Devuelve puntero o NULL.
+void* allocate_block(uint64_t size);
+
+// Libera un bloque reservado con allocate_block.
+void free_block(void* ptr);
+// ---
+
 
 // Lo que devuelvo en la syscall mem_stats. Total/used/free en bytes.
 // IMPORTANTE: definicion duplicada en syscallLib.h (userland).

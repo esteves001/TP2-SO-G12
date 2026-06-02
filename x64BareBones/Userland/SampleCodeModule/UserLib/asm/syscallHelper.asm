@@ -46,6 +46,9 @@ GLOBAL sys_pipe_read
 GLOBAL sys_pipe_write
 GLOBAL sys_close_pipe
 
+GLOBAL sys_malloc
+GLOBAL sys_free
+
 GLOBAL opCodeException
 
 section .text
@@ -119,6 +122,10 @@ sys_close_pipe:         syscall 0x3B
 
 ; Tiempo
 sys_sleepMilli:         syscall 0x40
+
+; Memoria dinamica
+sys_malloc:             syscall 0x41
+sys_free:               syscall 0x42
 
 opCodeException:
 	ud2

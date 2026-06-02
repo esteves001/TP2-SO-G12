@@ -6,10 +6,8 @@
 
 pipe_t * pipe_create() {
     // El pipe vive en una pagina. Puede que se desperdicie memoria, pero alcanza.
-    void * page = allocate_page();
-    if(page == NULL) return NULL;
-
-    pipe_t * p = (pipe_t *) page; // veo la pagina como un pipe
+    pipe_t * p = (pipe_t *) allocate_page();
+    if(p == NULL) return NULL; // veo la pagina como un pipe
     p->read_pos  = 0;
     p->write_pos = 0;
     p->active    = 1;
