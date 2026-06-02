@@ -251,8 +251,7 @@ void scrollScreen() {
     uint16_t screen_w = getScreenWidth();
     uint16_t screen_h = getScreenHeight();
     
-    uint8_t bytes_per_pixel = VBE_mode_info->bpp / 8;
-    uint32_t bytes_per_line = VBE_mode_info->pitch; 
+    uint32_t bytes_per_line = VBE_mode_info->pitch;
     
     uint32_t bytes_per_text_row = bytes_per_line * char_height;
     

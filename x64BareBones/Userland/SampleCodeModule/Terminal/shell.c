@@ -142,7 +142,11 @@ void exitShell(){
 }
 
 void exception_1(){
-    int a = 1/0; 
+    // división por cero a propósito: dispara la excepción #DE de la CPU.
+    // uso un volatile para que el compilador no la resuelva solo y no chille.
+    volatile int cero = 0;
+    int a = 1 / cero;
+    (void) a;   // a no me importa, la excepción ya saltó en la división
 }
 void exception_2(){
     opCodeException();
