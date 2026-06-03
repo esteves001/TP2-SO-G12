@@ -1,10 +1,11 @@
 #include <shell.h>
+#include <cmd_ipc.h>
+#include <cmd_proc.h>
 
-#define BUFFER        512
-#define MAX_ARGS      16
-#define SHELL_PIPE_ID 15
-#define CTRL_C        3
-#define CTRL_D        4
+#define BUFFER   512
+#define MAX_ARGS 16
+#define CTRL_C   3
+#define CTRL_D   4
 
 // --- Command function type ---
 typedef void (*CmdFn)(int argc, char **argv);
@@ -53,6 +54,13 @@ static cmd_t cmd_table[] = {
     {"test_prio",      cmd_test_prio,      1},
     {"test_sync",      cmd_test_sync,      1},
     {"test_pipe",      cmd_test_pipe,      1},
+    {"cat",            cmd_cat,            1},
+    {"wc",             cmd_wc,             1},
+    {"filter",         cmd_filter,         1},
+    {"loop",           cmd_loop,           1},
+    {"kill",           cmd_kill,           1},
+    {"nice",           cmd_nice_cmd,       1},
+    {"block",          cmd_block,          1},
     {(void*)0, (void*)0, 0}
 };
 
@@ -129,6 +137,8 @@ static void execute_line(char *line) {
         char *argv_r[MAX_ARGS]; int argc_r = tokenize(right, argv_r, MAX_ARGS);
 
         if (argc_l == 0 || argc_r == 0) { printf("syntax error\n"); return; }
+        to_lower(argv_l[0]);
+        to_lower(argv_r[0]);
 
         cmd_t *cl = find_cmd(argv_l[0]);
         cmd_t *cr = find_cmd(argv_r[0]);
@@ -137,12 +147,15 @@ static void execute_line(char *line) {
         if (!cl->can_bg) { printf("%s: no soporta pipes\n", argv_l[0]); return; }
         if (!cr->can_bg) { printf("%s: no soporta pipes\n", argv_r[0]); return; }
 
-        if (sys_create_pipe(SHELL_PIPE_ID) < 0) { printf("error: pipe\n"); return; }
+        int pipe_id = sys_alloc_pipe();
+        if (pipe_id < 0) { printf("error: pipe\n"); return; }
 
         int64_t pid_l = sys_create_process((void *)cl->fn, argv_l[0], argc_l, argv_l,
-                                           0, SHELL_PIPE_ID);
+                                           0, pipe_id);
+        if (pid_l < 0) { printf("error: proceso izquierdo no creado\n"); sys_close_pipe(pipe_id); return; }
+
         int64_t pid_r = sys_create_process((void *)cr->fn, argv_r[0], argc_r, argv_r,
-                                           SHELL_PIPE_ID, 0);
+                                           pipe_id, 0);
         if (!is_bg) {
             if (pid_l > 0) { sys_set_fg_pid(pid_l); sys_waitpid(pid_l); }
             if (pid_r > 0) { sys_set_fg_pid(pid_r); sys_waitpid(pid_r); }
@@ -151,7 +164,7 @@ static void execute_line(char *line) {
             if (pid_l > 0) sys_set_foreground(pid_l, 0);
             if (pid_r > 0) sys_set_foreground(pid_r, 0);
         }
-        sys_close_pipe(SHELL_PIPE_ID);
+        sys_close_pipe(pipe_id);
         return;
     }
 
@@ -159,6 +172,7 @@ static void execute_line(char *line) {
     char *argv[MAX_ARGS];
     int argc = tokenize(line, argv, MAX_ARGS);
     if (argc == 0) return;
+    to_lower(argv[0]);
 
     if (strcmp(argv[0], "exit") == 0) { 
         exitShell(); 
@@ -217,9 +231,9 @@ void readInput(char *buffer) {
         } else if (*c == '\b') {
             if (c > buffer) {
                 putchar(*c);
+                c -= 2;
+            } else {
                 c--;
-            }
-            c--;
         } else {
             putchar(*c);
             if (++limit > BUFFER) break;
@@ -234,7 +248,6 @@ void startShell(void) {
         show_prompt();
         readInput(buf);
         if (!active) break;
-        to_lower(buf);
         execute_line(buf);
     }
 }

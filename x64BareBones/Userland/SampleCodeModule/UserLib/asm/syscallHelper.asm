@@ -51,6 +51,8 @@ GLOBAL sys_free
 GLOBAL sys_waitpid
 GLOBAL sys_set_foreground
 GLOBAL sys_set_fg_pid
+GLOBAL sys_getticks
+GLOBAL sys_alloc_pipe
 
 GLOBAL opCodeException
 
@@ -130,6 +132,8 @@ sys_malloc:             syscall 0x41
 sys_free:               syscall 0x42
 sys_set_foreground:     syscall 0x44
 sys_set_fg_pid:         syscall 0x45
+sys_getticks:           syscall 0x46
+sys_alloc_pipe:         syscall 0x47
 
 
 

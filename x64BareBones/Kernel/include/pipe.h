@@ -25,6 +25,7 @@ void pipe_close(pipe_t * pipe);                   // cierra y libera el pipe
 // igual que los semaforos. ids 1..MAX_PIPES.
 #define MAX_PIPES 16
 
+int      pipe_alloc_id();                            // busca slot libre, crea y devuelve su id (-1 si no hay)
 int      pipe_create_id(int id);                    // crea el pipe con ese id (-1 si ya existe/invalido)
 int      pipe_open_id(int id);                       // valida que exista para usarlo
 int      pipe_read_id(int id, char * buf, int n);    // lee del pipe id (bloqueante)

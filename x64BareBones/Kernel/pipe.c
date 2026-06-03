@@ -58,12 +58,24 @@ void pipe_close(pipe_t * p) {
     // despierto a cualquiera que estuviera bloqueado para que vea active==0 y salga
     while(p->full.blocked_pids_counter > 0)  sem_post_on(&p->full);
     while(p->empty.blocked_pids_counter > 0) sem_post_on(&p->empty);
-    free_page(p);
+    // NO libera: free_page solo lo hace pipe_close_id (unico dueno del pipe por id)
 }
 
 // --- Capa por ID: pipes compartidos por un id acordado, como los semaforos ---
 
 static pipe_t * pipe_table[MAX_PIPES] = {0}; // ids 1..MAX_PIPES, indice id-1
+
+int pipe_alloc_id() {
+    for (int i = 0; i < MAX_PIPES; i++) {
+        if (pipe_table[i] == NULL) {
+            pipe_t * p = pipe_create();
+            if (p == NULL) return -1;
+            pipe_table[i] = p;
+            return i + 1; // ids 1..MAX_PIPES
+        }
+    }
+    return -1; // tabla llena
+}
 
 int pipe_create_id(int id) {
     if(id < 1 || id > MAX_PIPES) return -1;
@@ -92,6 +104,7 @@ int pipe_write_id(int id, char * buf, int n) {
 void pipe_close_id(int id) {
     if(id < 1 || id > MAX_PIPES || pipe_table[id-1] == NULL) return;
     pipe_close(pipe_table[id-1]);
+    free_page(pipe_table[id-1]);
     pipe_table[id-1] = NULL;
 }
 

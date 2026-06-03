@@ -3,6 +3,7 @@
 #include "process.h"
 #include "interrupts.h"  // para force_schedule()
 #include "pipe.h"
+#include "timeLib.h"
 
 #define STDIN  0
 #define STDOUT 1
@@ -451,6 +452,14 @@ void syscallDispatcher(Registers_t *regs)
         case 0x45:
             set_fg_pid(arg1);
             regs->rax = 0;
+            break;
+
+        case 0x46:
+            regs->rax = (uint64_t)ticks_elapsed();
+            break;
+
+        case 0x47:
+            regs->rax = (uint64_t)pipe_alloc_id();
             break;
 
         default:
