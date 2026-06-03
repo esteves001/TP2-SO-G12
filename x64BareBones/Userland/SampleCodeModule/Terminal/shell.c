@@ -234,6 +234,7 @@ void readInput(char *buffer) {
                 c -= 2;
             } else {
                 c--;
+            }
         } else {
             putchar(*c);
             if (++limit > BUFFER) break;
