@@ -52,36 +52,33 @@ uint64_t sys_write(uint8_t fd, const char *str, uint64_t count)
     if (current_process != NULL && current_process->pipe_out != NULL)
         return (uint64_t)pipe_write(current_process->pipe_out, (char*)str, (int)count);
 
-    int width = getWidth();
+    int width  = getWidth();
     int height = getHeight();
 
-    for (uint64_t i = 0; i < count; i++) 
+    for (uint64_t i = 0; i < count; i++)
     {
-        if (isSpecialChar(str[i])) 
+        if (isSpecialChar(str[i]))
         {
-            switch (str[i]) 
+            switch (str[i])
             {
             case '\n':
-                x_coord = 0; 
+                x_coord = 0;
                 y_coord += height + FONT_CHAR_GAP;
-                
                 if (y_coord + height > getScreenHeight()) {
                     scrollScreen();
                     y_coord -= (height + FONT_CHAR_GAP);
                 }
                 break;
-        
+
             case '\r':
                 x_coord = 0;
                 break;
 
             case '\t':
                 x_coord += (TAB_SPACES * (width + FONT_CHAR_GAP));
-                if (x_coord >= getScreenWidth()) 
-                {
+                if (x_coord >= getScreenWidth()) {
                     x_coord = x_coord % getScreenWidth();
                     y_coord += height + FONT_CHAR_GAP;
-                    
                     if (y_coord + height > getScreenHeight()) {
                         scrollScreen();
                         y_coord -= (height + FONT_CHAR_GAP);
@@ -90,39 +87,52 @@ uint64_t sys_write(uint8_t fd, const char *str, uint64_t count)
                 break;
 
             case '\b':
-                if (x_coord > width + FONT_CHAR_GAP) 
-                {
+                if (x_coord > width + FONT_CHAR_GAP) {
                     x_coord -= (width + FONT_CHAR_GAP);
-                } 
-                else 
-                {
-                    if (y_coord > 0) 
-                    {
+                } else {
+                    if (y_coord > 0) {
                         y_coord -= (height + FONT_CHAR_GAP);
                         x_coord = getScreenWidth() - TAB_SPACES*(width+ FONT_CHAR_GAP) + x_coord;
-                    } 
-                    else 
-                    {
+                    } else {
                         x_coord = 0;
                     }
                 }
                 drawRectangle(width, height, NEGRO, x_coord, y_coord);
                 break;
             }
-        } 
-        else 
+        }
+        else
         {
-            if (x_coord + width > getScreenWidth()) 
-            {
+            if (str[i] != ' ' && (i == 0 || str[i-1] == ' ')) {
+                // longitud de la palabra (hasta espacio, salto o fin)
+                uint64_t word_len = 0;
+                while (i + word_len < count
+                       && str[i + word_len] != ' '
+                       && !isSpecialChar(str[i + word_len])) {
+                    word_len++;
+                }
+                uint64_t word_px = word_len * (width + FONT_CHAR_GAP);
+                if (word_px <= getScreenWidth()
+                    && x_coord + word_px > getScreenWidth()) {
+                    x_coord = 0;
+                    y_coord += height + FONT_CHAR_GAP;
+                    if (y_coord + height > getScreenHeight()) {
+                        scrollScreen();
+                        y_coord -= (height + FONT_CHAR_GAP);
+                    }
+                }
+            }
+
+            // wrap por caracter (palabra mas larga que la pantalla, o seguridad)
+            if (x_coord + width > getScreenWidth()) {
                 x_coord = 0;
                 y_coord += height + FONT_CHAR_GAP;
-                
                 if (y_coord + height > getScreenHeight()) {
                     scrollScreen();
                     y_coord -= (height + FONT_CHAR_GAP);
                 }
             }
-            
+
             drawChar(str[i], BLANCO, x_coord, y_coord);
             x_coord += width + FONT_CHAR_GAP;
         }

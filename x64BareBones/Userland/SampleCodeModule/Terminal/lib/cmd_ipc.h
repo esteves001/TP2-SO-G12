@@ -4,5 +4,6 @@
 void cmd_cat(int argc, char **argv);
 void cmd_wc(int argc, char **argv);
 void cmd_filter(int argc, char **argv);
+void cmd_mvar(int argc, char **argv);
 
 #endif

@@ -18,6 +18,7 @@ typedef struct {
 
 
 static void cmd_help(int argc, char **argv);
+static void cmd_test(int argc, char **argv);
 static void cmd_clear(int argc, char **argv);
 static void cmd_date(int argc, char **argv);
 static void cmd_registers(int argc, char **argv);
@@ -38,6 +39,7 @@ static void cmd_test_pipe(int argc, char **argv);
 // can_bg=0 → solo fg directo; can_bg=1 → puede ser proceso (llama sys_exit al terminar)
 static cmd_t cmd_table[] = {
     {"help",           cmd_help,           0},
+    {"test",           cmd_test,           0},
     {"clear",          cmd_clear,          0},
     {"date",           cmd_date,           0},
     {"registers",      cmd_registers,      0},
@@ -57,6 +59,7 @@ static cmd_t cmd_table[] = {
     {"cat",            cmd_cat,            1},
     {"wc",             cmd_wc,             1},
     {"filter",         cmd_filter,         1},
+    {"mvar",           cmd_mvar,           1},
     {"loop",           cmd_loop,           1},
     {"kill",           cmd_kill,           1},
     {"nice",           cmd_nice_cmd,       1},
@@ -245,6 +248,8 @@ void readInput(char *buffer) {
 
 void startShell(void) {
     char buf[BUFFER];
+    printf("Bienvenido a la shell.\n");
+    printf("Escribi 'help' para ver los comandos y 'test' para ver los tests.\n\n");
     while (active) {
         show_prompt();
         readInput(buf);
@@ -253,19 +258,40 @@ void startShell(void) {
     }
 }
 
-// --- Command implementations ---
+
+static void print_padded(const char *name, int pad) {
+    int len = 0;
+    while (name[len]) { putchar(name[len]); len++; }
+    for (int i = len; i < pad; i++) putchar(' ');
+}
+
+static int is_test_cmd(const char *n) {
+    return n[0]=='t'&&n[1]=='e'&&n[2]=='s'&&n[3]=='t'&&n[4]=='_';
+}
 
 static void cmd_help(int argc, char **argv) {
-    printf("Comandos disponibles:\n");
+    printf("Lista de comandos:\n");
+    int col = 0;
     for (int i = 0; cmd_table[i].name != (void*)0; i++) {
-        printf("  %s", cmd_table[i].name);
-        if (cmd_table[i].can_bg){
-           printf(" [bg/pipe]");
-        }
-        printf("\n");
+        const char *n = cmd_table[i].name;
+        if (is_test_cmd(n)) continue;          // los tests van en 'test'
+        if (strcmp(n, "test") == 0) continue;  // no listar el propio 'test'
+        putchar(' ');
+        print_padded(n, 14);
+        if (++col % 3 == 0) putchar('\n');
     }
-    printf("  exit\n");
-    printf("\nTests: test_prio [N]  test_sync <pairs> <iters> <use_sem>  test_pipe\n");
+    if (col % 3 != 0) putchar('\n');
+    print_padded(" exit", 15);
+    putchar('\n');
+}
+
+static void cmd_test(int argc, char **argv) {
+    printf("Lista de tests:\n");
+    printf("  test_mm\n");
+    printf("  test_proc\n");
+    printf("  test_prio\n");
+    printf("  test_sync\n");
+    printf("  test_pipe\n");
 }
 
 static void cmd_clear(int argc, char **argv) {
@@ -332,10 +358,8 @@ static void cmd_ps(int argc, char **argv) {
     int n = sys_ps(buf, MAX_PS);
     printf("PID  NAME             STATE    PRIO FG\n");
     for (int i = 0; i < n; i++) {
-        // Imprimir campo por campo para evitar problemas con va_args y %s
         printf("%d", (int)buf[i].pid);
         putchar('\t');
-        // Imprimir nombre caracter a caracter (evita dependencia de null term)
         for (int j = 0; j < MAX_PROCESS_NAME && buf[i].name[j]; j++)
             putchar(buf[i].name[j]);
         putchar('\t');

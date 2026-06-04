@@ -16,21 +16,25 @@ int putchar(char c)
     return c;
 }
 
-// Devuelve la len + 1 por la \n
+static uint64_t str_len(const char *s) {
+    uint64_t n = 0;
+    while (s[n]) n++;
+    return n;
+}
+
+// escribe el string entero de una sola syscall (necesario para que el
+// word wrap del kernel vea la palabra completa, no char por char)
+static void print_str(const char *s) {
+    sys_write(STDOUT, s, str_len(s));
+}
+
 int puts(const char *s)
 {
-    uint64_t len;
-    for (len = 0; s[len]; len++)
-        putchar(s[len]);
+    uint64_t len = str_len(s);
+    sys_write(STDOUT, s, len);
     putchar('\n');
     return len + 1;
 }
-
-/*
-    Para estos me gustaria usar las funciones drawDec, drawHexa 
-    y drawBin.
-    Revisar todo devuelta si se puede cambiar
-*/
 
 static void printUnsigned(unsigned int u) {
     if (u >= 10) printUnsigned(u / 10);
@@ -63,11 +67,18 @@ int printf(const char *fmt, ...)
 {
     va_list ap;
     va_start(ap, fmt);
+    char buf[256];
+    int n = 0;
+
     for (const char *p = fmt; *p; p++) {
         if (*p != '%') {
-            putchar(*p);
+            buf[n++] = *p;
+            if (n == sizeof(buf)) { sys_write(STDOUT, buf, n); n = 0; }
             continue;
         }
+        // antes de un especificador, vaciamos lo acumulado
+        if (n > 0) { sys_write(STDOUT, buf, n); n = 0; }
+
         switch (*++p) {
         case 'd': printInt(va_arg(ap, int)); break;
         case 'u': printUnsigned(va_arg(ap, unsigned)); break;
@@ -75,17 +86,18 @@ int printf(const char *fmt, ...)
         case 'c': putchar((char)va_arg(ap, int)); break;
         case 's': {
             char *s = va_arg(ap, char*);
-            if (s) while (*s) putchar(*s++);
+            if (s) print_str(s);
             break;
         }
         case '%': putchar('%'); break;
         }
     }
+    if (n > 0) sys_write(STDOUT, buf, n);
+
     va_end(ap);
     return 0;
 }
 
-// TODO: Revisar esto devuelta para ver si se puede mejorar
 int scanf(const char *fmt, ...)
 {
     va_list ap;
