@@ -93,7 +93,7 @@ static int tokenize(char *str, char **argv, int max) {
 
 // Lanza fn como proceso fg: crea proceso, registra fg_pid, espera.
 static void run_as_process_fg(CmdFn fn, int argc, char **argv, int pipe_in_id, int pipe_out_id) {
-    int64_t pid = sys_create_process((void *)fn, argv[0], argc, argv, pipe_in_id, pipe_out_id);
+    int64_t pid = sys_create_process((void *)fn, argv[0], argc - 1, argv + 1, pipe_in_id, pipe_out_id);
     if (pid < 0) { printf("error: proceso no creado\n"); return; }
     sys_set_fg_pid(pid);
     sys_waitpid(pid);
@@ -102,10 +102,10 @@ static void run_as_process_fg(CmdFn fn, int argc, char **argv, int pipe_in_id, i
 
 // Lanza fn como proceso bg.
 static void run_as_process_bg(CmdFn fn, int argc, char **argv, int pipe_in_id, int pipe_out_id) {
-    int64_t pid = sys_create_process((void *)fn, argv[0], argc, argv, pipe_in_id, pipe_out_id);
-    if (pid < 0) { 
-        printf("error: proceso no creado\n"); 
-        return; 
+    int64_t pid = sys_create_process((void *)fn, argv[0], argc - 1, argv + 1, pipe_in_id, pipe_out_id);
+    if (pid < 0) {
+        printf("error: proceso no creado\n");
+        return;
     }
     sys_set_foreground(pid, 0);
     printf("[bg] pid %d\n", (int)pid);

@@ -5,20 +5,26 @@
 
 #define TOTAL_PROC 3
 
-// worker del test_prio: incrementa SU PROPIA variable hasta target y avisa.
-// el incremento es trabajo real (CPU), no es busy-wait sobre una condicion:
-// es lo que hace que se note quien tiene mas prioridad (termina antes).
-// volatile para que el compilador no se coma el loop.
 static void prio_worker(int argc, char ** argv) {
     int idx = satoi(argv[0]);
     uint64_t target = satoi(argv[1]);
 
-    volatile uint64_t count = 0;
-    while (count < target)
-        count++;
+    uint64_t quarter = target / 4;
+    if (quarter == 0) quarter = 1;
+    uint64_t next_mark = quarter;
 
-    printf("  [test_prio] proceso %d (pid %d) llego a %d\n",
-           idx, (int) sys_getpid(), (int) count);
+    volatile uint64_t count = 0;
+    while (count < target) {
+        count++;
+        if (count >= next_mark && next_mark <= target) {
+            int pct = (int)((count * 100) / target);
+            printf("  [prio] proc %d (pid %d, prio): %d%%\n",
+                   idx, (int) sys_getpid(), pct);
+            next_mark += quarter;
+        }
+    }
+
+    printf("  [prio] proc %d (pid %d) TERMINO\n", idx, (int) sys_getpid());
     sys_exit();
 }
 
@@ -48,17 +54,17 @@ static void correr_tanda(char * target_str, uint64_t * prios) {
 
 // test_prio: 2 tandas de 3 procesos que cuentan hasta target (argv[0]).
 // ronda 1 todos con la misma prio (default), ronda 2 con prios 1/3/5: ahi
-// se ve que el de mayor prio termina primero.
+// se ve que el de mayor prio (proc 2, prio 5) termina primero.
 void test_prio(int argc, char ** argv) {
     if (argc != 1 || satoi(argv[0]) <= 0) {
         printf("test_prio: uso -> test_prio <valor_target>\n");
         sys_exit();
     }
 
-    printf("test_prio: ronda 1 (misma prioridad)\n");
+    printf("test_prio: ronda 1 (misma prioridad, terminan parejos)\n");
     correr_tanda(argv[0], 0);
 
-    printf("test_prio: ronda 2 (prioridades 1, 3, 5)\n");
+    printf("test_prio: ronda 2 (prioridades 1, 3, 5 -> proc 2 termina primero)\n");
     uint64_t prios[TOTAL_PROC] = {1, 3, 5};
     correr_tanda(argv[0], prios);
 
