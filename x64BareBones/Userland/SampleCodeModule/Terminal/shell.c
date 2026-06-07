@@ -160,6 +160,7 @@ static void execute_line(char *line) {
             if (pid_l > 0) { sys_set_fg_pid(pid_l); sys_waitpid(pid_l); }
             if (pid_r > 0) { sys_set_fg_pid(pid_r); sys_waitpid(pid_r); }
             sys_set_fg_pid(0);
+            printf("\n");
         } else {
             if (pid_l > 0) sys_set_foreground(pid_l, 0);
             if (pid_r > 0) sys_set_foreground(pid_r, 0);
