@@ -49,6 +49,9 @@ static const char scancode_to_ascii_map_shifted[128] = {
 #define KEYBOARD_BUFFER_SIZE 256
 static char keyboard_buffer[KEYBOARD_BUFFER_SIZE];
 static uint64_t fg_pid = 0;
+static uint64_t kbd_waiting_pid = 0;
+
+void kbd_set_waiting_pid(uint64_t pid) { kbd_waiting_pid = pid; }
 
 void set_fg_pid(uint64_t pid) { fg_pid = pid; }
 static unsigned int buffer_write_idx = 0;
@@ -134,6 +137,10 @@ void loadCharToBuffer(char c) {
         keyboard_buffer[buffer_write_idx] = c;
         buffer_write_idx = (buffer_write_idx + 1) % KEYBOARD_BUFFER_SIZE;
         buffer_count++;
+        if (kbd_waiting_pid != 0) {
+            unblock_process(kbd_waiting_pid);
+            kbd_waiting_pid = 0;
+        }
     }
 }
 

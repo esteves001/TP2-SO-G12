@@ -25,4 +25,7 @@ char kbd_get_char();
 // Setea el pid del proceso en foreground para Ctrl+C.
 void set_fg_pid(uint64_t pid);
 
+// Registra el pid que debe desbloquearse cuando llegue el proximo char al buffer.
+void kbd_set_waiting_pid(uint64_t pid);
+
 #endif

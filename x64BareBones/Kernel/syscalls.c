@@ -4,6 +4,7 @@
 #include "interrupts.h"  // para force_schedule()
 #include "pipe.h"
 #include "timeLib.h"
+#include "keyboardDriver.h"
 
 #define STDIN  0
 #define STDOUT 1
@@ -152,10 +153,19 @@ uint64_t sys_read(uint8_t fd, char *buffer, uint64_t count)
     char c;
     for (uint64_t i = 0; i < count; i++)
     {
-        if (!(c = kbd_get_char()))
+        while (!(c = kbd_get_char())) {
+            // buffer vacio: bloqueo hasta que llegue un char
+            kbd_set_waiting_pid(current_process->pid);
+            block_process(current_process->pid);
+            force_schedule();
+        }
+        if (c == 4) { // Ctrl+D = EOF
+            if (current_process == NULL || current_process->pipe_out == NULL) {
+                char nl = '\n';
+                sys_write(STDOUT, &nl, 1);
+            }
             return i;
-        if (c == 4) // Ctrl+D = EOF
-            return i;
+        }
         buffer[i] = c;
     }
     return count;
