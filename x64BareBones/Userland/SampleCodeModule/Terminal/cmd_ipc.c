@@ -2,9 +2,12 @@
 #include <usrio.h>
 #include <syscallLib.h>
 #include <test_util.h>
+#include <stringLib.h>   // strcmp
 
 #define STDIN  0
 #define STDOUT 1
+
+#define MAX_PS_BUF 16    // = MAX_PROCESSES, lo que entra en el snapshot de ps
 
 static int is_vowel(char c) {
     return c=='a'||c=='e'||c=='i'||c=='o'||c=='u'||
@@ -118,6 +121,22 @@ static void mvar_reader(int argc, char **argv) {
     }
 }
 
+/* limpia una corrida anterior de mvar: mata los lectores/escritores viejos y
+   borra los semaforos. asi puedo correr mvar de nuevo sin rebootear, sin
+   arrastrar procesos zombie ni semaforos con pids fantasma de un kill previo. */
+static void mvar_cleanup(void) {
+    process_info_t buf[MAX_PS_BUF];
+    int n = sys_ps(buf, MAX_PS_BUF);
+    for (int i = 0; i < n; i++) {
+        if (strcmp(buf[i].name, "mvar_wr") == 0 || strcmp(buf[i].name, "mvar_rd") == 0)
+            sys_kill(buf[i].pid);
+    }
+    // delete es no-op si el sem no existe, asi que es seguro llamarlo siempre
+    sys_delete_sem(MVAR_EMPTY);
+    sys_delete_sem(MVAR_FULL);
+    sys_delete_sem(MVAR_MUTEX);
+}
+
 void cmd_mvar(int argc, char **argv) {
     if (argc < 3) {
         printf("uso: mvar <escritores> <lectores>\n");
@@ -133,6 +152,8 @@ void cmd_mvar(int argc, char **argv) {
         sys_exit();
         return;
     }
+
+    mvar_cleanup();   // limpio cualquier corrida anterior
 
     /* arranca vacia: se puede escribir, no se puede leer */
     sys_create_sem(MVAR_EMPTY, 1, "mvar_empty");
