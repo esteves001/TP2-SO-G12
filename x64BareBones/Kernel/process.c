@@ -4,6 +4,7 @@
 #include "interrupts.h" // para _hlt() en idle_process
 #include "timeLib.h"    // para timer_handler() en schedule_tick
 #include "pipe.h"
+#include "sem.h"      // para sem_remove_pid al matar un proceso
 
 // definiciones de los globales declarados extern en process.h
 // arrancan en NULL/0 porque al boot todavia no hay ningun proceso
@@ -211,6 +212,10 @@ void exit_process(pcb_t * proc) {
     pipe_close(proc->pipe_in);
     pipe_close(proc->pipe_out);
     proc->state = KILLED;
+
+    // lo saco de las colas de los sems asi no queda un pid fantasma que se
+    // coma un sem_post (sino un proceso vivo que esperaba nunca despierta)
+    sem_remove_pid(proc->pid);
 
     // desbloqueo a quien estaba esperando este proceso
     for(int i = 0; i < MAX_PROCESSES; i++) {

@@ -27,6 +27,13 @@ int create_sem(int sem_id, int status, const char * sem_name); //devuelve 1 si e
 void delete_sem(int sem_id);
 int open_sem(int sem_id);
 
+// saca un pid de las colas de bloqueados de TODOS los sems. la llamo cuando
+// muere un proceso, asi no queda un pid fantasma esperando un post que se
+// desperdiciaria. no toma el lock a proposito: corre con IF=0 (la llaman
+// exit/kill por int 0x80 y Ctrl+C por IRQ1, ambos interrupt gates) asi que
+// en monocore ya es atomico.
+void sem_remove_pid(uint64_t pid);
+
 // primitivas que operan sobre un sem_t suelto (no registrado en el array publico).
 // las usa el pipe para tener sus propios semaforos sin gastar ids del pool de 16.
 void sem_init(sem_t * s, int status);

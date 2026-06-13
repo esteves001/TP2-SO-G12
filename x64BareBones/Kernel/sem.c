@@ -97,6 +97,26 @@ void delete_sem(int sem_id) {
     }
 }
 
+void sem_remove_pid(uint64_t pid) {
+    for(int s = 0; s < MAX_SEM; s++) {
+        sem_t * sem = &sem_arr[s];
+        // busco el pid en la cola de este sem
+        for(int i = 0; i < sem->blocked_pids_counter; i++) {
+            if(sem->blocked_pids[i] == pid) {
+                // lo saco corriendo el resto un lugar a la izquierda
+                for(int j = i; j < sem->blocked_pids_counter - 1; j++) {
+                    sem->blocked_pids[j] = sem->blocked_pids[j+1];
+                }
+                sem->blocked_pids[--sem->blocked_pids_counter] = 0;
+                // este proceso habia hecho status-- al bloquearse; como ya no
+                // espera, devuelvo ese decremento para no perder un wakeup
+                sem->status++;
+                break; // un proceso esta en una sola cola a la vez
+            }
+        }
+    }
+}
+
 int open_sem(int sem_id) {
     if(valid_sem_id(sem_id)) {
         if(sem_arr[sem_id-1].id == sem_id) {
