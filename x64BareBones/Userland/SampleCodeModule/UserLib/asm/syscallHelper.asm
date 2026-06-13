@@ -53,6 +53,7 @@ GLOBAL sys_set_foreground
 GLOBAL sys_set_fg_pid
 GLOBAL sys_getticks
 GLOBAL sys_alloc_pipe
+GLOBAL sys_set_text_color
 
 GLOBAL opCodeException
 
@@ -134,6 +135,7 @@ sys_set_foreground:     syscall 0x44
 sys_set_fg_pid:         syscall 0x45
 sys_getticks:           syscall 0x46
 sys_alloc_pipe:         syscall 0x47
+sys_set_text_color:     syscall 0x48
 
 
 

@@ -134,7 +134,8 @@ uint64_t sys_write(uint8_t fd, const char *str, uint64_t count)
                 }
             }
 
-            drawChar(str[i], BLANCO, x_coord, y_coord);
+            uint32_t color = (current_process != NULL) ? (uint32_t)current_process->text_color : BLANCO;
+            drawChar(str[i], color, x_coord, y_coord);
             x_coord += width + FONT_CHAR_GAP;
         }
     }
@@ -480,6 +481,11 @@ void syscallDispatcher(Registers_t *regs)
 
         case 0x47:
             regs->rax = (uint64_t)pipe_alloc_id();
+            break;
+
+        case 0x48: // set_text_color(color): cambia el color de texto del proceso actual
+            if (current_process != NULL)
+                current_process->text_color = arg1;
             break;
 
         default:

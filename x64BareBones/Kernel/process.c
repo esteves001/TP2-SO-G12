@@ -184,7 +184,8 @@ int64_t create_process(void * entry_point, const char * process_name, int argc, 
     new_process->ticks_remaining = MIN_PRIORITY;
     new_process->foreground = 1;
     new_process->waiting_for_pid = 0;
-        
+    new_process->text_color = 0xFFFFFF; // blanco por defecto, igual que hasta ahora
+
     for(int i = 0 ; i < MAX_PROCESSES ; i++) {
         if( process_table[i] == NULL) {
             new_process->pid = i+1;

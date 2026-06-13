@@ -33,6 +33,7 @@ typedef struct {
 
     int foreground;           // 1 si corre en foreground, 0 si background
     uint64_t waiting_for_pid; // pid que estoy esperando (waitpid), 0 si no espero a nadie
+    uint64_t text_color;      // color con el que dibujo texto en sys_write
 } pcb_t;
 
 // Struct que devuelvo al userland en la syscall ps. NO es el PCB: es un

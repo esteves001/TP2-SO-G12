@@ -70,6 +70,7 @@ extern int64_t sys_nice(uint64_t pid, uint64_t new_priority);
 extern int64_t sys_create_process(void * entry, const char * name, int argc, char ** argv, int pipe_in_id, int pipe_out_id);
 extern void    sys_set_foreground(uint64_t pid, int fg);  // 0x44 - marca fg(1) o bg(0)
 extern void    sys_set_fg_pid(uint64_t pid);              // 0x45 - pid que Ctrl+C mata
+extern void    sys_set_text_color(uint32_t color);        // 0x48 - color de texto del proceso actual
 
 // Estado del memory manager para el comando mem.
 // IMPORTANTE: definicion duplicada en Kernel/include/memoryManager.h.

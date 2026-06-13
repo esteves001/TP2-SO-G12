@@ -52,6 +52,19 @@ void cmd_filter(int argc, char **argv) {
 #define MAX_WR 8
 #define MAX_RD 8
 
+/* un color por lector = el "identificador unico" que pide el enunciado.
+   el indice 0 es el "rojo" (el que el enunciado mata en uno de los casos). */
+static const uint32_t reader_colors[MAX_RD] = {
+    0xFF0000, /* rojo    */
+    0x00FF00, /* verde   */
+    0x00BFFF, /* celeste */
+    0xFFFF00, /* amarillo*/
+    0xFF00FF, /* magenta */
+    0xFF8000, /* naranja */
+    0x4060FF, /* azul    */
+    0xFFFFFF, /* blanco  */
+};
+
 /* variable global compartida (mismo espacio de memoria, sin MMU) */
 static volatile char mvar_value = 0;
 
@@ -82,6 +95,10 @@ static void mvar_writer(int argc, char **argv) {
 
 /* lector: consume el valor y lo imprime */
 static void mvar_reader(int argc, char **argv) {
+    int idx = argv[0][0] - '0';              // mi numero de lector (0,1,2...)
+    if (idx < 0 || idx >= MAX_RD) idx = 0;
+    sys_set_text_color(reader_colors[idx]);  // de aca en mas imprimo en mi color
+
     sys_open_sem(MVAR_EMPTY);
     sys_open_sem(MVAR_FULL);
     sys_open_sem(MVAR_MUTEX);
