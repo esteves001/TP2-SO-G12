@@ -93,7 +93,7 @@ void scheduler() {
         if(process_table[i] != NULL && process_table[i]->state == KILLED) {
             // si alguien mato a idle (no deberia pasar nunca), limpio el puntero
             if(process_table[i] == idle_pcb) idle_pcb = NULL;
-            free_block(process_table[i]);
+            free_page(process_table[i]);
             process_table[i] = NULL;
         }
     }
@@ -132,10 +132,17 @@ void scheduler() {
 int64_t create_process(void * entry_point, const char * process_name, int argc, char ** argv, int pipe_in_id, int pipe_out_id) {
     if(entry_point == NULL || process_name == NULL) return -1;
 
+    for(int i = 0; i < MAX_PROCESSES; i++) {
+        if(process_table[i] != NULL && process_table[i]->state == KILLED) {
+            if(process_table[i] == idle_pcb) idle_pcb = NULL;
+            free_page(process_table[i]);
+            process_table[i] = NULL;
+        }
+    }
+
     void * page = allocate_page();
     if(page == NULL) return -1; // Si no pudo alocar memoria no se puede crear el proceso
 
-    // sanitizo argc y copio los strings al page (NULL si argc==0)
     if(argc < 0) argc = 0;
     if(argc > MAX_ARGS) argc = MAX_ARGS;
     char ** argv_in_page = copy_argv_to_page(page, argc, argv);
@@ -151,9 +158,7 @@ int64_t create_process(void * entry_point, const char * process_name, int argc, 
     *(--stack) = 0x08;                    // CS  (code segment)
     *(--stack) = (uint64_t) entry_point;  // RIP
 
-    // Marco de popState (los 15 registros). Por convencion System V x86_64
-    // el primer arg va en RDI y el segundo en RSI, asi que ahi meto argc y
-    // argv para que el entry los reciba como parametros normales en C.
+
     *(--stack) = 0; // rax
     *(--stack) = 0; // rbx
     *(--stack) = 0; // rcx

@@ -5,8 +5,9 @@
 
 extern char getchar(void)
 {
-    char c;
-    while (!sys_read(STDIN, &c, 1));
+    char c = 0;
+    if (!sys_read(STDIN, &c, 1))
+        return 4; /* Ctrl+D / EOF */
     return c;
 }
 

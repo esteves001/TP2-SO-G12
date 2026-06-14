@@ -78,8 +78,7 @@ void test_sync(int argc, char ** argv) {
     for (int i = 0; i < n; i++)
         sys_waitpid(pids[i]);
 
-    printf("test_sync: balance final = %d (esperado 0 con semaforo)\n",
-           (int) global_balance);
+    printf("test_sync: balance final = %d\n", (int) global_balance);
 
     if (use_sem) sys_delete_sem(MUTEX_SEM_ID);
     sys_exit();

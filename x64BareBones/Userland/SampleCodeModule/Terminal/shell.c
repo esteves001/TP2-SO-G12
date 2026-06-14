@@ -378,19 +378,19 @@ static void cmd_exception2(int argc, char **argv) { opCodeException(); }
 
 // Comandos proceso (can_bg=1): DEBEN llamar sys_exit() al terminar.
 static void cmd_test_mm(int argc, char **argv) {
-    test_mm(argc, argv);
+    test_mm(argc - 1, argv + 1);
     sys_exit();
 }
 static void cmd_test_proc(int argc, char **argv) {
-    test_proc(argc, argv);
+    test_proc(argc - 1, argv + 1);
     sys_exit();
 }
 static void cmd_test_prio(int argc, char **argv) {
-    test_prio(argc, argv);
+    test_prio(argc - 1, argv + 1);
     sys_exit();
 }
 static void cmd_test_sync(int argc, char **argv) {
-    test_sync(argc, argv);
+    test_sync(argc - 1, argv + 1);
     sys_exit();
 }
 static void cmd_test_pipe(int argc, char **argv) {
