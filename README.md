@@ -210,5 +210,4 @@ test_proc 10 &
 Durante el desarrollo se utilizaron herramientas de inteligencia artificial como
 apoyo de investigación, para responder dudas conceptuales sobre los temas de la
 materia, como ayuda puntual en la implementación de algunas partes y en la
-redacción de este README. El diseño, la integración y la comprensión del código
-son responsabilidad del grupo.
+redacción de este README. Se utilizo en gran parte como herramienta de debug cuando las implementaciones no funcionaban

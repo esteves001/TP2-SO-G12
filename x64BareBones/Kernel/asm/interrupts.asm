@@ -6,6 +6,7 @@ GLOBAL haltcpu
 GLOBAL _hlt
 GLOBAL start_first_process
 GLOBAL force_schedule
+GLOBAL process_start
 
 GLOBAL _irq00Handler
 GLOBAL _irq01Handler
@@ -226,6 +227,19 @@ haltcpu:
 force_schedule:
 	int 20h
 	ret
+
+; void process_start(void)
+; Lo agregamos por la pregunta del enunciado: "se puede terminar un proceso con ret?".
+; Es lo primero que corre cuando arranca cualquier proceso. En vez de saltar directo
+; a la funcion del proceso, la llamamos con "call": asi, si la funcion termina con
+; return, en lugar de colgarse vuelve aca y llamamos a exit() por ella.
+; rbx tiene la funcion real del proceso; rdi/rsi ya tienen argc/argv.
+process_start:
+	call rbx        ; llamo a la funcion del proceso (con argc/argv en rdi/rsi)
+	mov rax, 0x23   ; numero de la syscall exit
+	int 80h         ; salgo igual que si el proceso hubiera llamado a exit()
+.fin:
+	jmp .fin        ; exit no vuelve nunca, esto es por las dudas
 
 ; void start_first_process(uint64_t rsp)
 ; Hace el primer salto al primer proceso. No vuelve nunca.

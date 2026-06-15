@@ -7,6 +7,8 @@
 #include "sem.h"      // para sem_remove_pid al matar un proceso
 #include "syscalls.h" // para Registers_t (mapeo de los regs que guarda pushState)
 
+extern void process_start(void);  // wrapper de arranque de procesos (asm)
+
 // definiciones de los globales declarados extern en process.h
 // arrancan en NULL/0 porque al boot todavia no hay ningun proceso
 pcb_t * current_process = NULL;
@@ -157,11 +159,11 @@ int64_t create_process(void * entry_point, const char * process_name, int argc, 
     *(--stack) = (uint64_t)((uint8_t*)page + PAGE_SIZE); // RSP
     *(--stack) = 0x202;                   // RFLAGS (interrupciones habilitadas)
     *(--stack) = 0x08;                    // CS  (code segment)
-    *(--stack) = (uint64_t) entry_point;  // RIP
+    *(--stack) = (uint64_t) process_start;  // RIP -> wrapper de arranque
 
 
     *(--stack) = 0; // rax
-    *(--stack) = 0; // rbx
+    *(--stack) = (uint64_t) entry_point; // rbx -> lo usa el wrapper para llamar al entry
     *(--stack) = 0; // rcx
     *(--stack) = 0; // rdx
     *(--stack) = 0; // rbp
