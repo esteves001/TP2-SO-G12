@@ -224,8 +224,8 @@ void readInput(char *buffer) {
             return;
         }
         if (ch == CTRL_D) {
-            printf("\n");
-            active = 0;
+            // el kernel ya imprime el '\n' del EOF (sys_read), asi que aca no bajo de linea
+            exitShell();     // imprime "Goodbye." y pone active = 0, igual que el comando exit
             buffer[0] = '\0';
             return;
         }
@@ -257,6 +257,7 @@ void startShell(void) {
         if (!active) break;
         execute_line(buf);
     }
+    sys_exit(); // soy el init: si salgo del loop, termino limpio en vez de volver a main y descarrilar
 }
 
 
