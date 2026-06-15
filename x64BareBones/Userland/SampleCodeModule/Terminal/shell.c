@@ -7,7 +7,7 @@
 #define CTRL_C   3
 #define CTRL_D   4
 
-// --- Command function type ---
+// --- Tipo de Command function ---
 typedef void (*CmdFn)(int argc, char **argv);
 
 typedef struct {
@@ -207,7 +207,7 @@ static void execute_line(char *line) {
     }
 }
 
-// --- Shell main loop ---
+// --- Loop principal de la shell ---
 
 void show_prompt(void) {
     printf("user@itba:> ");

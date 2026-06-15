@@ -23,7 +23,7 @@ extern int currentFont;
 #define FIRST_PRINTABLE_CHAR 32
 #define LAST_PRINTABLE_CHAR  126
 
-// siempre máscara de 8 bits
+// siempre mascara de 8 bits
 #define FONT_MASK_SMALL 0x80
 
 typedef const uint8_t font_char_t[FONT_CHAR_HEIGHT_BYTES];

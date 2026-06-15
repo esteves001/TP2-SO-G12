@@ -2,7 +2,7 @@
 
 #define CANT_REGS 20
 
-// Nombres de los registros para la impresión (deben coincidir con Registers_t)
+// Nombres de los registros para la impresion (deben coincidir con Registers_t)
 static const char* regs_strings[] = {
     "R15", "R14", "R13", "R12", "R11", "R10", "R9 ", "R8 ",
     "RSI", "RDI", "RBP", "RDX", "RCX", "RBX", "RAX",

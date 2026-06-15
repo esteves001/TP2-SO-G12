@@ -146,9 +146,6 @@ int main()
 	load_idt();  // deja interrupciones apagadas, las prende el iretq de start_first_process
 	initialize_memory_manager();  // sin esto, allocate_block devuelve NULL y no se crea ningun proceso
 
-	// Inicializamos el semáforo del teclado (ID 16, arranca en 0)
-    //create_sem(16, 0, "teclado");
-
 	create_idle_process();                                    // proceso 1: idle
 
 #ifdef SCHED_TEST

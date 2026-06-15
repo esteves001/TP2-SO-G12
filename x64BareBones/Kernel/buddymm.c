@@ -55,7 +55,7 @@ void initialize_memory_manager(void) {
     uint64_t total_ram_bytes = (uint64_t)ram_mb * KB_BYTES * KB_BYTES;
 
     uint64_t max_block_size = PAGE_SIZE * (1ULL << MAX_ORDER); 
-    //1ull es 1 as unsiged long long sirve para que por mas que cambiemos max_order siempre tengamos el mayor tamanio de bloque
+    //1ull es 1 as unsiged long long sirve para que por mas que cambiemos max_order siempre tengamos el mayor tamaño de bloque
 
     uint64_t aligned_start  = (MANAGED_MEMORY_START + max_block_size - 1) & ~(max_block_size - 1); 
     //alinea la memoria managed_memory_start al multiplo de max_block_size mas cercano hacia arriba para poder utilizar xor y encontrar los buddys de la memoria
@@ -66,7 +66,7 @@ void initialize_memory_manager(void) {
     uint64_t  remaining = total_ram_bytes - aligned_start; 
     free_bytes = 0;
 
-    //asigna bloques de maximo tamanio, hasta llenar toda la ram o que no haya un orden menor, es para no tener memoria inutil
+    //asigna bloques de maximo tamaño, hasta llenar toda la ram o que no haya un orden menor, es para no tener memoria inutil
     for (int order = MAX_ORDER; order >= 0; order--) {
         uint64_t block_size = PAGE_SIZE * (1ULL << order);
         while (remaining >= block_size) {
@@ -109,7 +109,7 @@ static block_node_t *get_block(int order) {
 static void put_block(uint8_t *actual, uint64_t order) {
     if (order > MAX_ORDER) return;
 
-    free_bytes += PAGE_SIZE * (1ULL << order); //agrego el tamanio del bloque liberado
+    free_bytes += PAGE_SIZE * (1ULL << order); //agrego el tamaño del bloque liberado
 
     // fusiono el bloque con su buddy, subo orden mientras pueda
     while (order < MAX_ORDER) {
@@ -143,10 +143,10 @@ void free_page(void* ptr) {
 }
 
 // Reserva un bloque de memoria de `bytes` bytes.
-// Calcula el orden necesario según el tamaño solicitado,
-// obtiene un bloque del buddy system (partiendo bloques más grandes si es necesario),
+// Calcula el orden necesario segun el tamaño solicitado,
+// obtiene un bloque del buddy system (partiendo bloques mas grandes si es necesario),
 // almacena la metadata del orden al inicio del bloque, y devuelve un puntero al contenido.
-// También maneja la asignación de páginas individuales (bytes <= PAGE_SIZE).
+// Tambien maneja la asignacion de paginas individuales (bytes <= PAGE_SIZE).
 void *allocate_block(uint64_t bytes) {
     if (bytes == 0) return NULL;
 
@@ -167,7 +167,7 @@ void *allocate_block(uint64_t bytes) {
 // Libera un bloque previamente asignado con allocate_block.
 // Recupera el orden almacenado en la metadata y delega a put_block
 // para devolver el bloque al buddy system, fusionando con su buddy mientras sea posible.
-// Funciona tanto para bloques individuales (páginas) como para bloques mayores.
+// Funciona tanto para bloques individuales (paginas) como para bloques mayores.
 void free_block(void *ptr) {
     if (ptr == NULL) return;
 

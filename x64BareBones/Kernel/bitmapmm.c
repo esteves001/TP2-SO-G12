@@ -1,9 +1,9 @@
 #include <memoryManager.h>
 
-// Dirección física donde Pure64 deja la cantidad de RAM en MiB (32-bit)
+// Direccion fisica donde Pure64 deja la cantidad de RAM en MiB (32-bit)
 #define PURE64_RAM_INFO 0x5020
 
-// Dirección segura para comenzar a administrar la memoria
+// Direccion segura para comenzar a administrar la memoria
 // (0x100000 Kernel, 0x400000 CodeModule, 0x500000 DataModule)
 #define MANAGED_MEMORY_START 0x600000 
 
@@ -28,12 +28,12 @@ void initialize_memory_manager(void) {
     
     total_pages = total_ram_bytes / PAGE_SIZE; 
     
-    // 2. Calcular cuántas páginas ocupa el propio bitmap
+    // 2. Calcular cuantas paginas ocupa el propio bitmap
     uint64_t bitmap_size_bytes = total_pages / 8;
     if (total_pages % 8 != 0) {
-        bitmap_size_bytes++; // suma un byte extra si sobra algún resto (para no dejar páginas sin administrar)
+        bitmap_size_bytes++; // suma un byte extra si sobra algun resto (para no dejar paginas sin administrar)
     }
-    // Calculamos cuántas páginas enteras se necesitan para cubir todo el mapa
+    // Calculamos cuantas paginas enteras se necesitan para cubir todo el mapa
     uint64_t bitmap_pages = (bitmap_size_bytes + PAGE_SIZE - 1) / PAGE_SIZE;
 
     // 3. Inicialmente marcamos toda la memoria como ocupada (bits en 1)
@@ -43,22 +43,22 @@ void initialize_memory_manager(void) {
 
     // 4. Calculamos cual es la primera pagina libre (despues de Kernel, Modulos y el propio Bitmap)
     first_free_page = (MANAGED_MEMORY_START / PAGE_SIZE) + bitmap_pages;
-    // A partir de este índice, todo el resto de la RAM hasta el final queda como memoria libre
+    // A partir de este indice, todo el resto de la RAM hasta el final queda como memoria libre
 
 
-    // 5. Liberar las páginas que realmente podemos usar
+    // 5. Liberar las paginas que realmente podemos usar
     for (uint64_t i = first_free_page; i < total_pages; i++) {
         uint64_t byte_index = i / 8;
         uint8_t bit_index = i % 8;
-        bitmap[byte_index] &= ~(1 << bit_index); // Instrucción estándar en C para "apagar un bit"
+        bitmap[byte_index] &= ~(1 << bit_index); // Instruccion estandar en C para "apagar un bit"
     }
     
     free_pages = total_pages - first_free_page;
 }
 
 
-// Busca `pages_needed` páginas contiguas libres a partir de first_free_page.
-// Devuelve el índice de la primera página del bloque, o total_pages si no hay.
+// Busca `pages_needed` paginas contiguas libres a partir de first_free_page.
+// Devuelve el indice de la primera pagina del bloque, o total_pages si no hay.
 static uint64_t find_consecutive_pages(uint64_t pages_needed) {
     uint64_t consecutive = 0;
     uint64_t start_page  = 0;
@@ -71,7 +71,7 @@ static uint64_t find_consecutive_pages(uint64_t pages_needed) {
             consecutive = 0;
         }
     }
-    return total_pages; // no encontró
+    return total_pages; // no encontro
 }
 
 void* allocate_page(void) {
@@ -88,10 +88,10 @@ void free_page(void* address) {
     free_pages++;
 }
 
-// Reserva un bloque de memoria de `size` bytes, alineado a páginas.
-// Internamente busca páginas contiguas libres, las marca como ocupadas,
+// Reserva un bloque de memoria de `size` bytes, alineado a paginas.
+// Internamente busca paginas contiguas libres, las marca como ocupadas,
 // y devuelve un puntero al bloque (con metadata de tamaño al inicio).
-// También maneja la asignación de páginas individuales (size <= PAGE_SIZE).
+// Tambien maneja la asignacion de paginas individuales (size <= PAGE_SIZE).
 void* allocate_block(uint64_t size) {
     if (size == 0) return NULL;
 
@@ -112,9 +112,9 @@ void* allocate_block(uint64_t size) {
 
 
 // Libera un bloque previamente asignado con allocate_block.
-// Lee la metadata para obtener la cantidad de páginas a liberar,
+// Lee la metadata para obtener la cantidad de paginas a liberar,
 // y las marca como disponibles en el bitmap.
-// Funciona tanto para bloques individuales (páginas) como para bloques mayores.
+// Funciona tanto para bloques individuales (paginas) como para bloques mayores.
 void free_block(void* ptr) {
     if (ptr == NULL) return;
 

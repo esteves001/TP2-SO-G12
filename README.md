@@ -13,7 +13,7 @@ Todo el código del proyecto vive dentro de la carpeta `x64BareBones/`.
 |---------------------|--------|
 | Matías Holgado      | 64747  |
 | Valentino Esteves   | 64335  |
-| Gerónimo Naso       | (a completar) |
+| Gerónimo Naso       | 64177  |
 
 ## Requisitos
 
@@ -136,6 +136,31 @@ Todos corren como **procesos de usuario** y aceptan `&` para background.
 | `test_prio <target>`                   | valor al que cuentan las variables          | 3 procesos que incrementan una variable: primero con la misma prioridad, luego con prioridades distintas. |
 | `test_sync <pares> <loops> <use_sem>`  | pares inc/dec · iteraciones · `1`/`0` semáforos | Incrementan/decrementan una variable global. Con semáforos el resultado final es 0; sin ellos varía. |
 | `test_pipe`                            | (sin parámetros)                            | Demo de productor/consumidor no emparentados sobre un pipe compartido por ID. |
+
+---
+
+## Tests internos del kernel (durante el desarrollo)
+
+Además de los tests de la cátedra (que corren como procesos de usuario), durante
+el desarrollo escribimos algunas pruebas a **nivel kernel** para validar cada
+mecanismo de forma aislada, **antes** de exponerlo como comando de la shell.
+
+No son tests unitarios automatizados: son pruebas manuales que se activan
+descomentando un `#define` en `Kernel/kernel.c` y recompilando. En lugar de
+levantar el userland normal, el kernel lanza los procesos de prueba y el
+resultado se observa directamente en pantalla.
+
+| Toggle (`#define` en `kernel.c`) | Qué valida |
+|----------------------------------|------------|
+| `SCHED_TEST` | Context switch: dos procesos (`test_a`/`test_b`) dibujan en paralelo dos líneas (de A's y B's). Si solo avanza una, el cambio de contexto no funciona. |
+| `ARGS_TEST`  | Pasaje de parámetros: `test_args` recibe `argc`/`argv` y los dibuja, confirmando que llegan por `RDI`/`RSI`. |
+| `PRIO_TEST`  | Scheduler con prioridades: 3 procesos cuentan hasta N con prioridades 1, 3 y 5; el de mayor prioridad termina primero. |
+
+Nos sirvieron para dos cosas: confirmar que lo implementado en el kernel
+funcionaba bien, y aislar errores. Una vez que estas pruebas pasaban, si algo
+fallaba al usarlo desde userland sabíamos que el problema **no estaba en el
+kernel**, lo que acotaba mucho la búsqueda. Por defecto todos los toggles están
+comentados, así que el build normal levanta la shell.
 
 ---
 

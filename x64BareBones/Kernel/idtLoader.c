@@ -3,7 +3,7 @@
 #include <defs.h>
 #include <interrupts.h>
 
-#pragma pack(push)		/* Push de la alineación actual */
+#pragma pack(push)		/* Push de la alineacion actual */
 #pragma pack (1) 		/* Alinear las siguiente estructuras a 1 byte */
 
 /* Descriptor de interrupcion */
@@ -14,7 +14,7 @@ typedef struct {
   uint32_t offset_h, other_cero;
 } DESCR_INT;
 
-#pragma pack(pop)		/* Reestablece la alinceación actual */
+#pragma pack(pop)		/* Reestablece la alineacion actual */
 
 DESCR_INT * idt = (DESCR_INT *) 0;	// IDT de 255 entradas
 

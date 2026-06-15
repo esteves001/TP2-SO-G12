@@ -192,13 +192,13 @@ getKeyCode:
 	push rbp
 	mov rbp, rsp
 	
-	mov rax, 0      ; Valor de retorno por defecto: 0 (ningún carácter / no imprimible)
+	mov rax, 0      ; Valor de retorno por defecto: 0 (ningun caracter / no imprimible)
 
 	in al, 64h		; Leer el puerto de estado del controlador del teclado (flags)
 	test al, 0x01	; Comprobar el bit 0 (Output Buffer Full - OBF)
-	jz .exit_gk		; Si no está lleno (no hay tecla), saltar al final (RAX ya es 0)
+	jz .exit_gk		; Si no esta lleno (no hay tecla), saltar al final (RAX ya es 0)
 
-					; Una tecla está disponible, leerla
+					; Una tecla esta disponible, leerla
 	in al, 60h 		; Leer el scancode del puerto de datos del teclado
 
 .exit_gk:

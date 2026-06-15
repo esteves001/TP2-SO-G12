@@ -96,7 +96,7 @@ SECTION .text
     ; la ejecucion se reanude al principio del modulo de Userland (la shell).
     ; La CPU guarda 5 registros (SS, RSP, RFLAGS, CS, RIP) en una interrupcion.
     ; Nuestra macro pushState guarda 15 registros.
-    ; RIP está en [rsp + 15*8] = [rsp + 120] desde donde estaba RSP antes de esta llamada.
+    ; RIP esta en [rsp + 15*8] = [rsp + 120] desde donde estaba RSP antes de esta llamada.
     mov qword [rsp + 120], userland
 
     popState

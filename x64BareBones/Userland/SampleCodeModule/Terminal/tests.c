@@ -67,7 +67,7 @@ void inc_process(int argc, char **argv) {
     for (int i = 0; i < n; i++) {
         if (use_sem) sys_sem_wait(MUTEX_SEM_ID);
         
-        // --- SECCIÓN CRÍTICA ---
+        // --- SECCION CRITICA ---
         int64_t temp = global_balance;
         sys_yield(); // Cede la CPU intencionalmente
         global_balance = temp + 1;
@@ -93,13 +93,13 @@ void dec_process(int argc, char **argv) {
     if (use_sem) sys_open_sem(MUTEX_SEM_ID);
     sys_open_sem(SYNC_SEM_ID);
 
-    // FIX 1: Lo mismo acá
+    // FIX 1: Lo mismo aca
     int step = (n >= 5) ? (n / 5) : 1;
 
     for (int i = 0; i < n; i++) {
         if (use_sem) sys_sem_wait(MUTEX_SEM_ID);
         
-        // --- SECCIÓN CRÍTICA ---
+        // --- SECCION CRITICA ---
         int64_t temp = global_balance;
         sys_yield();
         global_balance = temp - 1;
@@ -126,7 +126,7 @@ int test_sync_main(int argc, char **argv) {
 
     uint64_t pairs = atoi(argv[0]);
     
-    // --- VALIDACIÓN DE LÍMITE DE PROCESOS ---
+    // --- VALIDACION DE LIMITE DE PROCESOS ---
     // Sabiendo que el SO soporta 16 procesos, y 2 ya pueden estar ocupados
     // por la Shell y este test_sync_main, limitamos a 7 pares (14 procesos).
     if (pairs > 7) {

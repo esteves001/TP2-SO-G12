@@ -202,7 +202,6 @@ int64_t create_process(void * entry_point, const char * process_name, int argc, 
 
     free_page(page); // tabla llena, libero la page que ya habia reservado
     return -1;
-    // agregar int 0x20 forzar a cortar al timertick, esto es para que si agrego un proceso con prioridad se ejecute ese.
 }
 
 // Mata al proceso que le pase. Lo cambie para que reciba un PCB en vez de

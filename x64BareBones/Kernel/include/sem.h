@@ -6,12 +6,12 @@
 
 #define MAX_SEM 16
 #define MAX_SEM_NAME 32  // largo maximo del nombre de sem(incluyendo el \0)
-#define MAX_BLOCKED_PIDS 16  // largo maximo del nombre de sem(incluyendo el \0)
+#define MAX_BLOCKED_PIDS 16  // tope de pids que pueden estar bloqueados en un sem a la vez
 
 
 
 typedef struct{
-    int id;     //id unico del sem no se si es necesario comienza en 1 hasta el 16
+    int id;     // id unico del sem, va de 1 a 16
     int status;    // valor del semaforo -1, 0 ,1 ,2
     int lock;     // 0 si esta released 1 si esta acquired
     char sem_name[MAX_SEM_NAME];

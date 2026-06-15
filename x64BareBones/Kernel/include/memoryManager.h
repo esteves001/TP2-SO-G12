@@ -4,16 +4,16 @@
 #include <stdint.h>
 #include <stddef.h>
 
-#define PAGE_SIZE 4096 // 4KB por página
+#define PAGE_SIZE 4096 // 4KB por pagina
 
 // Inicializa el Memory Manager marcando los bloques ocupados por el OS
 void initialize_memory_manager(void);
 
 // -- Uso interno del Kernel: (PCBs, pipes)
-// Reserva una página de 4 KiB (uso interno del kernel: PCBs, pipes).
+// Reserva una pagina de 4 KiB (uso interno del kernel: PCBs, pipes).
 void* allocate_page(void);
 
-// Libera una página reservada con allocate_page.
+// Libera una pagina reservada con allocate_page.
 void free_page(void* address);
 // ---
 

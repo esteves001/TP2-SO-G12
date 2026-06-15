@@ -170,7 +170,7 @@ static void drawHLine(uint32_t hexColor, int64_t x1, int64_t x2, int64_t y) {
 }
 
 // Dibuja los segmentos horizontales correspondientes a los 8 octantes,
-// rellenando el círculo
+// rellenando el circulo
 static void fillCircleOctants(uint32_t hexColor, int64_t xc, int64_t yc, int64_t dx, int64_t dy)
 {
     // Octantes “superiores” e “inferiores”
@@ -196,7 +196,7 @@ void drawCircle(uint64_t radius, uint32_t hexColor, uint64_t x_center, uint64_t 
     int64_t y = r;
     int64_t p = 1 - r;
 
-    // Dibuja la línea central y sus simétricas
+    // Dibuja la linea central y sus simetricas
     fillCircleOctants(hexColor, xc, yc, x, y);
 
     while (x < y) {

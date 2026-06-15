@@ -6,7 +6,7 @@
 sem_t sem_arr[MAX_SEM] = {0};
 //en todo el codigo uso sem_id-1 porque los ids van de 1 a 16 por tanto en el arreglo van de 0 a 15
 
-int valid_sem_id(int sem_id) { // algo hay que validar seguramente no se que es aun, por lo pronto puse que sea un sem_id valido
+int valid_sem_id(int sem_id) { // valida que el id este en el rango 1..16
     return sem_id >= 1 && sem_id <= 16;
 }
 
@@ -63,7 +63,7 @@ void sem_wait(int sem_id) {
     sem_wait_on(&sem_arr[sem_id-1]);
 }
 
-int create_sem(int sem_id, int status, const char * sem_name) { // tambien chequear ya no tener un sem creado con el mismo id, por lo pronto asumo que no luego valido
+int create_sem(int sem_id, int status, const char * sem_name) { // si ya existe un sem con ese id devuelvo 0 (no piso el que estaba)
     if(valid_sem_id(sem_id)) {
         if(sem_arr[sem_id-1].id != 0) {
             return 0; 

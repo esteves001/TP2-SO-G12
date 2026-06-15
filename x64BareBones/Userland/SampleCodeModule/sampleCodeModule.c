@@ -19,9 +19,6 @@ int main() {
 
 	startShell();
 
-	//drawRectangle(1000, 1000, 0x00FF00, 0, 0);
-	//startPongisGolf();
-
 	//Test if BSS is properly set up
 	if (var1 == 0 && var2 == 0)
 		return 0xDEADC0DE;

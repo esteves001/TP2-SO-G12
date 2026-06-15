@@ -37,7 +37,7 @@ static const char scancode_to_ascii_map_normal[128] = {
     'b',  'n',  'm',  ',',  '.',  '/',  0,    '*',    0,    ' ',  0,    0,    0,    0,    0,    0, // 0x30-0x3F (b-m, ,, ., /, RShift, Keypad *, LAlt, Space, CapsLock, F1-F10...)
 };
 
-// Caracteres con Shift presionado (o con CapsLock para letras si Shift no está presionado)
+// Caracteres con Shift presionado (o con CapsLock para letras si Shift no esta presionado)
 static const char scancode_to_ascii_map_shifted[128] = {
     0,  0x1B, '!',  '@',  '#',  '$',  '%',  '^',  '&',  '*',  '(',  ')',  '_',  '+',  '\b', '\t',
     'Q',  'W',  'E',  'R',  'T',  'Y',  'U',  'I',  'O',  'P',  '{',  '}',  '\n', 0,    'A',  'S',
@@ -82,7 +82,7 @@ char procesScanCode(unsigned int scancode) //modifique los valores de los return
             kbd_modifier_state.rshift = is_press;
             return 0;
         case SC_CAPSLOCK_PRESS:
-            if (is_press) { // CapsLock es un toggle, actúa solo al apretar
+            if (is_press) { // CapsLock es un toggle, actua solo al apretar
                 kbd_modifier_state.caps_lock_on = !kbd_modifier_state.caps_lock_on;
             }
             return 0;
@@ -94,7 +94,7 @@ char procesScanCode(unsigned int scancode) //modifique los valores de los return
             return 0;
     }
 
-    // 2. Si es un "press" de una tecla no modificadora, procesar para agarrar el carácter
+    // 2. Si es un "press" de una tecla no modificadora, procesar para agarrar el caracter
     char final_char = 0;
     if (is_press) {
         char char_normal = 0;
@@ -168,7 +168,7 @@ void keyboard_handler(Registers_t *regs)
 
 char kbd_get_char() {
     if (buffer_count == 0)
-        return 0; // Buffer vacío
+        return 0; // Buffer vacio
 
     char c = keyboard_buffer[buffer_read_idx];
     buffer_read_idx = (buffer_read_idx + 1) % KEYBOARD_BUFFER_SIZE;

@@ -9,8 +9,6 @@
 #define STDIN  0
 #define STDOUT 1
 
-#define VERDE   0x8bd450
-#define VIOLETA 0x8b4bd4
 #define BLANCO  0xffffff
 #define NEGRO   0x000000
 
@@ -180,10 +178,10 @@ uint64_t get_pid()
  
 void syscallDispatcher(Registers_t *regs) 
 {
-    // El número de la syscall generalmente se pasa en RAX
+    // El numero de la syscall generalmente se pasa en RAX
     uint64_t syscall_id = regs->rax;
 
-    // Los argumentos suelen pasarse en RDI, RSI, RDX, RCX, R8, R9 (según la convención de llamada de System V AMD64)
+    // Los argumentos suelen pasarse en RDI, RSI, RDX, RCX, R8, R9 (segun la convencion de llamada de System V AMD64)
     uint64_t arg1 = regs->rdi;
     uint64_t arg2 = regs->rsi;
     uint64_t arg3 = regs->rdx;
@@ -227,7 +225,6 @@ void syscallDispatcher(Registers_t *regs)
             clearScreen();
             x_coord = 0;
             y_coord = 0;
-            //drawString("ZOOM IN PERRO", VERDE, 200, 200);
             break;
         
         case 0x07:
@@ -235,7 +232,6 @@ void syscallDispatcher(Registers_t *regs)
             clearScreen();
             x_coord = 0;
             y_coord = 0;
-            //drawString("ZOOM OUT PERRO", VIOLETA, 250, 250);
             break;
 
         case 0x10:
@@ -490,7 +486,7 @@ void syscallDispatcher(Registers_t *regs)
 
         default:
             // Syscall desconocida o no implementada
-            // Se imprime un error o se establece un código de error en rax
+            // Se imprime un error o se establece un codigo de error en rax
             regs->rax = (uint64_t)-1; // Ejemplo de error (ENOSYS)
             break;
     }
