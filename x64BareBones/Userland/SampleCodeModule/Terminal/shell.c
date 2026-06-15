@@ -358,18 +358,22 @@ static const char *state_str(int s) {
 static void cmd_ps(int argc, char **argv) {
     process_info_t buf[MAX_PS];
     int n = sys_ps(buf, MAX_PS);
-    printf("PID  NAME             STATE    PRIO FG\n");
+    printf("PID\tNAME\tSTATE\tPRIO\tFG\tSP\tBP\n");
     for (int i = 0; i < n; i++) {
-        printf("%d", (int)buf[i].pid);
+        printf("%d", (int)buf[i].pid);        // id del proceso
         putchar('\t');
         for (int j = 0; j < MAX_PROCESS_NAME && buf[i].name[j]; j++)
-            putchar(buf[i].name[j]);
+            putchar(buf[i].name[j]);          // nombre
         putchar('\t');
-        printf("%s", state_str(buf[i].state));
+        printf("%s", state_str(buf[i].state)); // estado: ready/running/blocked
         putchar('\t');
-        printf("%d", (int)buf[i].priority);
+        printf("%d", (int)buf[i].priority);   // prioridad (1 a 5)
         putchar('\t');
-        printf("%d", buf[i].foreground);
+        printf("%d", buf[i].foreground);      // 1 si corre en foreground, 0 si background
+        putchar('\t');
+        printf("0x%lx", buf[i].rsp);          // stack pointer
+        putchar('\t');
+        printf("0x%lx", buf[i].rbp);          // base pointer (RBP)
         putchar('\n');
     }
 }

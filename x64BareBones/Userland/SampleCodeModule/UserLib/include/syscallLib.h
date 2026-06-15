@@ -52,7 +52,7 @@ typedef struct {
     char name[MAX_PROCESS_NAME];
     int state;              // 0 READY, 1 RUNNING, 2 BLOCKED
     uint64_t rsp;
-    uint64_t stack_base;
+    uint64_t rbp;
     uint64_t priority;
     int foreground;
 } process_info_t;

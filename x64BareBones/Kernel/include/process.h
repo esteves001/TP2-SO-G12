@@ -46,7 +46,7 @@ typedef struct {
     char name[MAX_PROCESS_NAME];
     int state;              // READY/RUNNING/BLOCKED (KILLED no aparece, lo filtro)
     uint64_t rsp;
-    uint64_t stack_base;    // tope del stack = pcb + PAGE_SIZE
+    uint64_t rbp;           // base pointer (RBP) guardado del proceso
     uint64_t priority;      // placeholder hasta que existan prioridades
     int foreground;         // placeholder hasta que exista fg/bg
 } process_info_t;

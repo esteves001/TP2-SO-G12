@@ -5,6 +5,7 @@
 #include "timeLib.h"    // para timer_handler() en schedule_tick
 #include "pipe.h"
 #include "sem.h"      // para sem_remove_pid al matar un proceso
+#include "syscalls.h" // para Registers_t (mapeo de los regs que guarda pushState)
 
 // definiciones de los globales declarados extern en process.h
 // arrancan en NULL/0 porque al boot todavia no hay ningun proceso
@@ -294,9 +295,10 @@ int ps_snapshot(process_info_t * buf, int max) {
         out->name[j] = 0;  // terminador
         out->state = p->state;
         out->rsp = p->rsp;
-        // truco: la pagina entera del proceso ES el PCB, asi que el stack
-        // empieza al final de esa pagina (creci hacia abajo desde ahi).
-        out->stack_base = (uint64_t)p + PAGE_SIZE;
+        // el RBP del proceso esta guardado en su propio stack: lo salva el
+        // context switch. p->rsp apunta al bloque de registros, asi que lo
+        // leo con el mismo mapeo que usa pushState.
+        out->rbp = ((Registers_t *)p->rsp)->rbp;
         out->priority = p->priority;
         out->foreground = p->foreground;
         written++;

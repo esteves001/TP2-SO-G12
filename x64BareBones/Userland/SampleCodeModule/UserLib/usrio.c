@@ -64,6 +64,19 @@ static void printHex(unsigned int x) {
     while (i--) putchar(buf[i]);
 }
 
+// igual que printHex pero para 64 bits (lo uso para imprimir punteros)
+static void printHex64(uint64_t x) {
+    char buf[16];
+    int i = 0;
+    if (x == 0) { putchar('0'); return; }
+    while (x) {
+        int d = x & 0xF;
+        buf[i++] = d < 10 ? '0' + d : 'a' + (d - 10);
+        x >>= 4;
+    }
+    while (i--) putchar(buf[i]);
+}
+
 int printf(const char *fmt, ...)
 {
     va_list ap;
@@ -84,6 +97,9 @@ int printf(const char *fmt, ...)
         case 'd': printInt(va_arg(ap, int)); break;
         case 'u': printUnsigned(va_arg(ap, unsigned)); break;
         case 'x': printHex(va_arg(ap, unsigned)); break;
+        case 'l':   // soporto %lx: hexa de 64 bits (punteros)
+            if (*(p + 1) == 'x') { p++; printHex64(va_arg(ap, uint64_t)); }
+            break;
         case 'c': putchar((char)va_arg(ap, int)); break;
         case 's': {
             char *s = va_arg(ap, char*);
