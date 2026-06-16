@@ -86,6 +86,7 @@ completa y `test` para el listado de tests de la cátedra.
 |----------|---------------------------------------------------------|
 | `Ctrl+C` | Mata al proceso en foreground (o cancela la línea actual si no hay ninguno). |
 | `Ctrl+D` | Envía EOF al proceso que está leyendo de stdin.         |
+| `Ctrl+R` | Captura snapshot de registros del CPU (ver `registers`). |
 
 ---
 
@@ -100,6 +101,10 @@ completa y `test` para el listado de tests de la cátedra.
 | `date`       | Imprime fecha y hora del RTC.                           |
 | `registers`  | Imprime el snapshot de registros (capturado con `Ctrl+R`). |
 | `zoom_in` / `zoom_out` | Cambia el tamaño de fuente del video.         |
+| `busywait`   | Busy-wait en userland (~10⁹ iteraciones). Útil para capturar `Ctrl+R`. |
+| `busywaitkernel` | Busy-wait de 5 s en kernel (via `sleepMilli`).       |
+| `exception1` | Dispara división por cero (prueba manejo de excepciones). |
+| `exception2` | Dispara opcode inválido (prueba manejo de excepciones). |
 
 ### Memoria
 | Comando | Descripción                                          |
@@ -194,7 +199,12 @@ test_proc 10 &
 
 ---
 
-## Limitaciones
+## Limitaciones y requerimientos faltantes
+
+Todos los requerimientos del enunciado están implementados. No hay funcionalidad
+faltante ni parcialmente implementada.
+
+Limitaciones conocidas:
 
 - El administrador **bitmap** trabaja a nivel de página (4 KB): los pedidos se
   redondean hacia arriba, con la fragmentación interna que eso implica.

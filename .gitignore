@@ -1,3 +1,11 @@
 .vscode
 .bash_history
 .DS_Store
+
+# Build artifacts
+*.o
+*.a
+*.bin
+*.elf
+*.img
+*.qcow2
