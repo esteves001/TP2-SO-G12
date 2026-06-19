@@ -1,85 +1,79 @@
 #include <stdint.h>
-#include <test_util.h>
-#include <usrio.h>
+#include <usrio.h>    /* printf */
 #include <syscallLib.h>
+#include "syscall.h"
+#include "test_util.h"
 
-#define MUTEX_SEM_ID 1
-#define MAX_PAIRS 6      // idle+shell+test_sync = 3 slots; quedan 13 -> 6 pares (12 hijos)
+#define SEM_ID "sem"
+#define TOTAL_PAIR_PROCESSES 2
 
-// variable compartida entre todos los procesos. en este kernel todos los
-// procesos de userland comparten el mismo address space, asi que una global
-// es compartida de verdad (ese es justo el punto del test de races).
-static volatile int64_t global_balance = 0;
+int64_t global; // shared memory
 
-// seccion critica: leo, cedo la CPU a proposito (fuerzo el race) y escribo.
-// con sem la protejo; sin sem se ve la corrupcion.
-static void inc_process(int argc, char ** argv) {
-    uint64_t loops = satoi(argv[0]);
-    int use_sem = satoi(argv[1]);
-    if (use_sem) sys_open_sem(MUTEX_SEM_ID);
-
-    for (uint64_t i = 0; i < loops; i++) {
-        if (use_sem) sys_sem_wait(MUTEX_SEM_ID);
-        int64_t tmp = global_balance;
-        sys_yield();
-        global_balance = tmp + 1;
-        if (use_sem) sys_sem_post(MUTEX_SEM_ID);
-    }
-    sys_exit();
+void slowInc(int64_t *p, int64_t inc) {
+  uint64_t aux = *p;
+  if (GetUniform(100) < 30)
+    my_yield(); // This makes the race condition highly probable
+  aux += inc;
+  *p = aux;
 }
 
-static void dec_process(int argc, char ** argv) {
-    uint64_t loops = satoi(argv[0]);
-    int use_sem = satoi(argv[1]);
-    if (use_sem) sys_open_sem(MUTEX_SEM_ID);
+// entry-point
+uint64_t my_process_inc(int argc, char *argv[]) {
+  uint64_t n;
+  int8_t inc;
+  int8_t use_sem;
 
-    for (uint64_t i = 0; i < loops; i++) {
-        if (use_sem) sys_sem_wait(MUTEX_SEM_ID);
-        int64_t tmp = global_balance;
-        sys_yield();
-        global_balance = tmp - 1;
-        if (use_sem) sys_sem_post(MUTEX_SEM_ID);
+  if (argc != 3) { sys_exit(); return -1; }
+
+  if ((n = satoi(argv[0])) <= 0) { sys_exit(); return -1; }
+  if ((inc = satoi(argv[1])) == 0) { sys_exit(); return -1; }
+  if ((use_sem = satoi(argv[2])) < 0) { sys_exit(); return -1; }
+
+  if (use_sem)
+    if (!my_sem_open(SEM_ID, 1)) {
+      printf("test_sync: ERROR opening semaphore\n");
+      sys_exit();
+      return -1;
     }
-    sys_exit();
+
+  uint64_t i;
+  for (i = 0; i < n; i++) {
+    if (use_sem)
+      my_sem_wait(SEM_ID);
+    slowInc(&global, inc);
+    if (use_sem)
+      my_sem_post(SEM_ID);
+  }
+
+  if (use_sem)
+    my_sem_close(SEM_ID);
+
+  sys_exit();
+  return 0;
 }
 
-// test_sync: crea N pares inc/dec sobre la variable compartida. con sem el
-// resultado final tiene que ser 0; sin sem se ve la corrupcion por races.
-// argv: <pares> <loops> <use_sem (1|0)>
-void test_sync(int argc, char ** argv) {
-    if (argc != 3) {
-        printf("test_sync: uso -> test_sync <pares> <loops> <use_sem 1|0>\n");
-        sys_exit();
-    }
+void test_sync(int argc, char *argv[]) { //{n, use_sem}
+  uint64_t pids[2 * TOTAL_PAIR_PROCESSES];
 
-    uint64_t pairs = satoi(argv[0]);
-    int use_sem = satoi(argv[2]);
+  if (argc != 2) { sys_exit(); return; }
 
-    if (pairs == 0 || pairs > MAX_PAIRS) {
-        printf("test_sync: pares tiene que estar entre 1 y %d\n", MAX_PAIRS);
-        sys_exit();
-    }
+  char *argvDec[] = {argv[0], "-1", argv[1], 0};
+  char *argvInc[] = {argv[0], "1", argv[1], 0};
 
-    global_balance = 0;
-    if (use_sem) sys_create_sem(MUTEX_SEM_ID, 1, "mutex");
+  global = 0;
 
-    char * hijo_argv[] = { argv[1], argv[2] };   // loops, use_sem
-    int64_t pids[2 * MAX_PAIRS];
-    int n = 0;
+  uint64_t i;
+  for (i = 0; i < TOTAL_PAIR_PROCESSES; i++) {
+    pids[i] = my_create_process("my_process_inc", 3, argvDec);
+    pids[i + TOTAL_PAIR_PROCESSES] = my_create_process("my_process_inc", 3, argvInc);
+  }
 
-    for (uint64_t i = 0; i < pairs; i++) {
-        int64_t pi = sys_create_process((void *) &inc_process, "inc", 2, hijo_argv, 0, 0);
-        if (pi > 0) pids[n++] = pi;
-        int64_t pd = sys_create_process((void *) &dec_process, "dec", 2, hijo_argv, 0, 0);
-        if (pd > 0) pids[n++] = pd;
-    }
+  for (i = 0; i < TOTAL_PAIR_PROCESSES; i++) {
+    my_wait(pids[i]);
+    my_wait(pids[i + TOTAL_PAIR_PROCESSES]);
+  }
 
-    // espero a TODOS los hijos con waitpid (antes era un semaforo SYNC)
-    for (int i = 0; i < n; i++)
-        sys_waitpid(pids[i]);
+  printf("Final value: %d\n", (int)global);
 
-    printf("test_sync: balance final = %d\n", (int) global_balance);
-
-    if (use_sem) sys_delete_sem(MUTEX_SEM_ID);
-    sys_exit();
+  sys_exit();
 }
